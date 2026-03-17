@@ -1,12 +1,12 @@
-file(GLOB_RECURSE DEMO_SOURCES CONFIGURE_DEPENDS
-    src/*.cpp
+add_executable(pixelstorm_demo
+    src/main.cpp
 )
 
-add_executable(pixelstorm-demo ${DEMO_SOURCES})
+target_link_libraries(pixelstorm_demo PRIVATE pixelstorm_engine)
 
-target_link_libraries(pixelstorm-demo
-    PRIVATE
-        pixelstorm::engine
-)
-
-target_compile_features(pixelstorm-demo PRIVATE cxx_std_17)
+if (WIN32)
+    target_link_options(pixelstorm_demo PRIVATE
+        $<$<CONFIG:Release>:/SUBSYSTEM:WINDOWS>
+        $<$<CONFIG:Release>:/ENTRY:mainCRTStartup>
+    )
+endif()
