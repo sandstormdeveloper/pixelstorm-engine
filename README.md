@@ -1,20 +1,14 @@
 # The PixelStorm Game Engine
 
-## How to build with CMake
+A pretty small **2D game engine**, made specifically for **pixel art**. This project was built from scratch using mainly **C++** and **OpenGL**.
 
-The following **commands** demonstrate how to **build** your game with **CMake**, and generate a working *.exe* file:
+## Tech Stack
 
-**Only Debug** (with terminal)
-```console
-cmake -S . -B build; cmake --build build -j 4
-```
-
-**Only Release** (without terminal)
-```console
-cmake -S . -B build; cmake --build build -j 4 --config Release
-```
-
-**Debug and Release**
-```console
-cmake -S . -B build; cmake --build build -j 4; cmake --build build -j 4 --config Release
-```
+This project was built with the following tools:
+  - **C++**: Programming language.
+  - **OpenGL**: Graphics API.
+  - **GLAD**: OpenGl loader.
+  - **GLFW**: Window and input.
+  - **CMake**: Build.
+  - **GLM**: Math.
+  - **ImGui**: UI.
