@@ -4,7 +4,7 @@ A pretty small **2D game engine**, made specifically for **pixel art**. This pro
 
 ## Documentation
 
-Explore all the game engine's functionalities in detail on the [docs site](https://sandstormdeveloper.github.io/website/docs).
+Explore all the game engine's functionalities in **detail** on the [docs site](https://sandstormdeveloper.github.io/website/docs).
 
 ## Tech Stack
 
