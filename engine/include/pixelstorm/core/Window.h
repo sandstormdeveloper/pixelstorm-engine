@@ -8,10 +8,7 @@ public:
     ~Window();
 
     void Update();
-
     bool ShouldClose() const;
-
-    GLFWwindow* GetNative() const { return m_Window; }
 
 private:
     GLFWwindow* m_Window;

@@ -1,6 +1,5 @@
 #include "pixelstorm/core/Window.h"
 #include <glad/glad.h>
-#include <iostream>
 
 Window::Window(int width, int height, const char* title)
 {
