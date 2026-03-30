@@ -4,12 +4,12 @@
 class Window
 {
 public:
-    Window(int width, int height, const char* title);
+    Window(int width, int height, const char *title);
     ~Window();
 
-    void Update();
-    bool ShouldClose() const;
+    void Update();            // Updates widnow
+    bool ShouldClose() const; // Returns if the window shoould close
 
 private:
-    GLFWwindow* m_Window;
+    GLFWwindow *m_Window; // Pointer top GLFW window
 };

@@ -4,14 +4,14 @@
 class Shader
 {
 public:
-    Shader(const std::string& name);
+    Shader(const std::string &name);
     ~Shader();
 
-    void Use();
+    void Use(); // Activates shader
 
 private:
-    unsigned int m_ID;
+    unsigned int m_ID; // Shader ID
 
-    std::string ReadFile(const std::string& path);
-    unsigned int Compile(unsigned int type, const char* source);
+    std::string ReadFile(const std::string &path);               // Reads shader file
+    unsigned int Compile(unsigned int type, const char *source); // Compiles shader
 };
