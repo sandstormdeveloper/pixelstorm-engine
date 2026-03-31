@@ -7,9 +7,11 @@ public:
     Window(int width, int height, const char *title);
     ~Window();
 
-    void Update();            // Updates widnow
-    bool ShouldClose() const; // Returns if the window shoould close
+    void Update();            // Updates window
+    bool ShouldClose() const; // Returns if the window should close
 
 private:
-    GLFWwindow *m_Window; // Pointer top GLFW window
+    static void FramebufferSizeCallback(GLFWwindow *window, int width, int height); // Adjusts viewport when windows is resized
+
+    GLFWwindow *m_Window; // Pointer to GLFW window
 };

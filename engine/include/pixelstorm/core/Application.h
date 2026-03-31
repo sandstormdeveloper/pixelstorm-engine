@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <string>
 #include "pixelstorm/core/Window.h"
 #include "pixelstorm/renderer/Shader.h"
@@ -13,8 +14,12 @@ public:
     void SetDefaultShader(const std::string &name); // Sets default shader used
 
 private:
-    Window *m_Window; // Pointer to window
+    void Init(int width, int height, const char *title);
+    void Shutdown();
+    
+    Shader *GetActiveShader() const;
 
-    Shader *m_DefaultShader; // Base shader
-    Shader *m_EntityShader;  // Shader for objects
+    std::unique_ptr<Window> m_Window;        // Main window
+    std::unique_ptr<Shader> m_DefaultShader; // Base shader
+    std::unique_ptr<Shader> m_EntityShader;  // Shader for objects
 };

@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iostream>
 
+// Shader directory
 #define SHADER_PATH "assets/shaders/"
 
 Shader::Shader(const std::string &name)
