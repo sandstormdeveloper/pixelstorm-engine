@@ -1,4 +1,5 @@
 #include "pixelstorm/core/Application.h"
+#include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Time.h"
 #include <glad/glad.h>
 #include <memory>
@@ -47,11 +48,17 @@ void Application::Run()
 
 void Application::Init(int width, int height, const char *title)
 {
+    // Starts logger
+    Log::Init();
+
     // Creates window with specified parameters
     m_Window = std::make_unique<Window>(width, height, title);
 
     // Starts clock
     Time::Init();
+
+    // Init message
+    Log::Info("Application initialized.");
 
     // Sets default shaders (can be overwritten)
     m_DefaultShader = std::make_unique<Shader>("default");
@@ -63,10 +70,14 @@ void Application::Shutdown()
     // Resets clock
     Time::Shutdown();
 
+    // Shutdown message
+    Log::Info("Application shutdown.");
+
     // Destroys objects
     m_EntityShader.reset();
     m_DefaultShader.reset();
     m_Window.reset();
+    Log::Shutdown();
 }
 
 Shader *Application::GetActiveShader() const
