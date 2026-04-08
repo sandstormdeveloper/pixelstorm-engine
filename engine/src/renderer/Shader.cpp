@@ -54,6 +54,12 @@ void Shader::Use()
     glUseProgram(m_ID);
 }
 
+void Shader::SetInt(const std::string &name, int value) const
+{
+    // Specifies value of uniform variable
+    glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value);
+}
+
 std::string Shader::ReadFile(const std::string &path)
 {
     // Opens file

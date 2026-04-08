@@ -39,7 +39,22 @@ void Application::Run()
 
         // Activates shader
         if (shaderToUse)
+        {
             shaderToUse->Use();
+            shaderToUse->SetInt("u_Texture", 0);
+        }
+
+        // Binds texture
+        if (m_Texture)
+        {
+            m_Texture->Bind();
+        }
+
+        // Draws the first visible quad
+        if (m_Renderer)
+        {
+            m_Renderer->DrawQuad();
+        }
 
         // Updates window
         m_Window->Update();
@@ -60,6 +75,10 @@ void Application::Init(int width, int height, const char *title)
     // Init message
     Log::Info("Application initialized.");
 
+    // Creates first renderer resources
+    m_Renderer = std::make_unique<Renderer>();
+    m_Texture = std::make_unique<Texture>();
+
     // Sets default shaders (can be overwritten)
     m_DefaultShader = std::make_unique<Shader>("default");
     m_EntityShader.reset();
@@ -74,9 +93,13 @@ void Application::Shutdown()
     Log::Info("Application shutdown.");
 
     // Destroys objects
+    m_Texture.reset();
+    m_Renderer.reset();
     m_EntityShader.reset();
     m_DefaultShader.reset();
     m_Window.reset();
+
+    // Shuts down logger
     Log::Shutdown();
 }
 

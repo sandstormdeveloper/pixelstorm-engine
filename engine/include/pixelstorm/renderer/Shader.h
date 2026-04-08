@@ -8,6 +8,7 @@ public:
     ~Shader();
 
     void Use(); // Activates shader
+    void SetInt(const std::string &name, int value) const; // Specifies value of uniform variable
 
 private:
     unsigned int m_ID; // Shader ID
