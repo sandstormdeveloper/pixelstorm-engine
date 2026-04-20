@@ -10,7 +10,7 @@ Window::Window(int width, int height, const char *title) : m_Window(nullptr)
         throw std::runtime_error("Failed to initialize GLFW.");
     }
 
-    // Creates window and activates OpenGL
+    // Creates window and OpenGL context
     m_Window = glfwCreateWindow(width, height, title, nullptr, nullptr);
     if (!m_Window)
     {
@@ -18,7 +18,10 @@ Window::Window(int width, int height, const char *title) : m_Window(nullptr)
         throw std::runtime_error("Failed to create GLFW window.");
     }
 
+    // Makes the window's context current on this thread
     glfwMakeContextCurrent(m_Window);
+
+    // Updates viewport
     glfwSetFramebufferSizeCallback(m_Window, FramebufferSizeCallback);
 
     // Loads OpenGL functions with GLAD
@@ -62,7 +65,7 @@ bool Window::ShouldClose() const
 
 void Window::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
 {
-    // Asjusts viewpòrt when window is resized
+    // Adjusts viewport when window is resized
     (void)window;
     glViewport(0, 0, width, height);
 }
