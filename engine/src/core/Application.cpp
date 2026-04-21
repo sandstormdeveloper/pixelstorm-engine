@@ -3,6 +3,7 @@
 #include "pixelstorm/core/Time.h"
 #include <glad/glad.h>
 #include <glm/mat4x4.hpp>
+#include <glm/vec2.hpp>
 #include <memory>
 
 Application::Application(int width, int height, const char *title)
@@ -38,13 +39,16 @@ void Application::Run()
         // Decides shader to use
         Shader *shaderToUse = GetActiveShader();
 
-        // Activates shader
+        // Activates shader (if it exists)
         if (shaderToUse)
         {
             const glm::mat4 identity(1.0f);
             shaderToUse->Use();
+
+            // Defines what texture to use
             shaderToUse->SetInt("u_Texture", 0);
-            shaderToUse->SetMat4("u_Model", identity);
+
+            // Sets projection matrix
             shaderToUse->SetMat4("u_ViewProjection", identity);
         }
 
@@ -54,10 +58,10 @@ void Application::Run()
             m_Texture->Bind();
         }
 
-        // Draws the first visible quad
-        if (m_Renderer)
+        // Draws quad
+        if (m_Renderer && shaderToUse)
         {
-            m_Renderer->DrawQuad();
+            m_Renderer->DrawQuad(*shaderToUse, glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 1.0f), 0.0f);
         }
 
         // Updates window
