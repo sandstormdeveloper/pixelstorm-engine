@@ -1,7 +1,8 @@
 #include "pixelstorm/renderer/Texture.h"
 #include <glad/glad.h>
 
-Texture::Texture() : m_ID(0)
+Texture::Texture()
+    : m_ID(0)
 {
     // 2x2 texture
     const unsigned char pixels[] = {

@@ -2,7 +2,8 @@
 #include <glad/glad.h>
 #include <stdexcept>
 
-Window::Window(int width, int height, const char *title) : m_Window(nullptr)
+Window::Window(int width, int height, const char *title)
+    : m_Window(nullptr)
 {
     // Initializes GLFW
     if (!glfwInit())

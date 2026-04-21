@@ -5,7 +5,10 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/trigonometric.hpp>
 
-Renderer::Renderer() : m_VAO(0), m_VBO(0), m_EBO(0)
+Renderer::Renderer()
+    : m_VAO(0),
+      m_VBO(0),
+      m_EBO(0)
 {
     // Quad vertices with UVs
     const float vertices[] = {
