@@ -1,4 +1,5 @@
 #pragma once
+#include <glm/mat4x4.hpp>
 #include <string>
 
 class Shader
@@ -8,7 +9,8 @@ public:
     ~Shader();
 
     void Use(); // Activates shader
-    void SetInt(const std::string &name, int value) const; // Specifies value of uniform variable
+    void SetInt(const std::string &name, int value) const;             // Specifies value of uniform variable
+    void SetMat4(const std::string &name, const glm::mat4 &value) const; // Specifies value of mat4 uniform
 
 private:
     unsigned int m_ID; // Shader ID

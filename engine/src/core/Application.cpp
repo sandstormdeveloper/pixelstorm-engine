@@ -2,6 +2,7 @@
 #include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Time.h"
 #include <glad/glad.h>
+#include <glm/mat4x4.hpp>
 #include <memory>
 
 Application::Application(int width, int height, const char *title)
@@ -40,8 +41,11 @@ void Application::Run()
         // Activates shader
         if (shaderToUse)
         {
+            const glm::mat4 identity(1.0f);
             shaderToUse->Use();
             shaderToUse->SetInt("u_Texture", 0);
+            shaderToUse->SetMat4("u_Model", identity);
+            shaderToUse->SetMat4("u_ViewProjection", identity);
         }
 
         // Binds texture

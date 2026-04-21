@@ -2,6 +2,7 @@
 #include "pixelstorm/renderer/Shader.h"
 #include <glad/glad.h>
 #include <fstream>
+#include <glm/gtc/type_ptr.hpp>
 #include <sstream>
 
 // Shader directory
@@ -58,6 +59,12 @@ void Shader::SetInt(const std::string &name, int value) const
 {
     // Specifies value of uniform variable
     glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value);
+}
+
+void Shader::SetMat4(const std::string &name, const glm::mat4 &value) const
+{
+    // Specifies value of mat4 uniform variable
+    glUniformMatrix4fv(glGetUniformLocation(m_ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 std::string Shader::ReadFile(const std::string &path)
