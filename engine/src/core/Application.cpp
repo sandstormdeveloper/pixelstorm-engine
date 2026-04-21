@@ -2,7 +2,6 @@
 #include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Time.h"
 #include <glad/glad.h>
-#include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 #include <memory>
 
@@ -42,14 +41,16 @@ void Application::Run()
         // Activates shader (if it exists)
         if (shaderToUse)
         {
-            const glm::mat4 identity(1.0f);
             shaderToUse->Use();
 
             // Defines what texture to use
             shaderToUse->SetInt("u_Texture", 0);
 
-            // Sets projection matrix
-            shaderToUse->SetMat4("u_ViewProjection", identity);
+            // Sets camera matrix
+            if (m_Camera)
+            {
+                shaderToUse->SetMat4("u_ViewProjection", m_Camera->GetViewProjectionMatrix());
+            }
         }
 
         // Binds texture
@@ -83,8 +84,15 @@ void Application::Init(int width, int height, const char *title)
     // Init message
     Log::Info("Application initialized.");
 
-    // Creates first renderer resources
+    // Creates renderer
     m_Renderer = std::make_unique<Renderer>();
+
+    // Creates camera
+    const float safeHeight = height > 0 ? static_cast<float>(height) : 1.0f;
+    const float aspectRatio = static_cast<float>(width) / safeHeight;
+    m_Camera = std::make_unique<Camera2D>(-aspectRatio, aspectRatio, -1.0f, 1.0f);
+
+    // Creates texture
     m_Texture = std::make_unique<Texture>();
 
     // Sets default shaders (can be overwritten)
@@ -102,6 +110,7 @@ void Application::Shutdown()
 
     // Destroys objects
     m_Texture.reset();
+    m_Camera.reset();
     m_Renderer.reset();
     m_EntityShader.reset();
     m_DefaultShader.reset();
