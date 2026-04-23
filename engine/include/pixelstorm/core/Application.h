@@ -1,6 +1,8 @@
 #pragma once
 #include <memory>
 #include <string>
+#include "pixelstorm/components/SpriteRenderer.h"
+#include "pixelstorm/components/Transform.h"
 #include "pixelstorm/core/Window.h"
 #include "pixelstorm/renderer/Camera2D.h"
 #include "pixelstorm/renderer/Renderer.h"
@@ -28,4 +30,6 @@ private:
     std::unique_ptr<Shader> m_DefaultShader; // Base shader
     std::unique_ptr<Shader> m_EntityShader;  // Shader for objects
     std::unique_ptr<Texture> m_Texture;      // First procedural texture
+    Transform m_DemoTransform;               // Temporary transform
+    SpriteRenderer m_DemoSprite;             // Temporary sprite component
 };

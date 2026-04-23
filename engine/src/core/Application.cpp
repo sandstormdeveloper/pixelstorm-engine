@@ -2,7 +2,7 @@
 #include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Time.h"
 #include <glad/glad.h>
-#include <glm/vec2.hpp>
+#include <glm/vec4.hpp>
 #include <memory>
 
 Application::Application(int width, int height, const char *title)
@@ -53,16 +53,15 @@ void Application::Run()
             }
         }
 
-        // Binds texture
-        if (m_Texture)
-        {
-            m_Texture->Bind();
-        }
+        // Updates demo transform
+        m_DemoTransform.Rotation = static_cast<float>(Time::GetElapsedTime() * 45.0);
 
-        // Draws quad
-        if (m_Renderer && shaderToUse)
+        // Draws the demo sprite through Transform + SpriteRenderer
+        if (m_Renderer && shaderToUse && m_DemoSprite.Visible && m_DemoSprite.TextureResource)
         {
-            m_Renderer->DrawQuad(*shaderToUse, glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 1.0f), 0.0f);
+            m_DemoSprite.TextureResource->Bind();
+            shaderToUse->SetVec4("u_Color", m_DemoSprite.Color);
+            m_Renderer->DrawQuad(*shaderToUse, m_DemoTransform.GetMatrix());
         }
 
         // Updates window
@@ -94,6 +93,10 @@ void Application::Init(int width, int height, const char *title)
 
     // Creates texture
     m_Texture = std::make_unique<Texture>();
+
+    // Creates temporary components
+    m_DemoTransform = Transform(glm::vec2(0.0f, 0.0f), glm::vec2(1.5f, 1.5f), 0.0f);
+    m_DemoSprite = SpriteRenderer(m_Texture.get(), glm::vec4(1.0f, 0.9f, 0.9f, 1.0f));
 
     // Sets default shaders (can be overwritten)
     m_DefaultShader = std::make_unique<Shader>("default");

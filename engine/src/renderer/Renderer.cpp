@@ -2,8 +2,6 @@
 
 #include "pixelstorm/renderer/Shader.h"
 #include <glad/glad.h>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/trigonometric.hpp>
 
 Renderer::Renderer()
     : m_VAO(0),
@@ -70,15 +68,10 @@ Renderer::~Renderer()
     }
 }
 
-void Renderer::DrawQuad(const Shader &shader, const glm::vec2 &position, const glm::vec2 &size, float rotationDegrees) const
+void Renderer::DrawQuad(const Shader &shader, const glm::mat4 &modelMatrix) const
 {
-    // Builds the object transform in world space
-    const glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f)) *
-                            glm::rotate(glm::mat4(1.0f), glm::radians(rotationDegrees), glm::vec3(0.0f, 0.0f, 1.0f)) *
-                            glm::scale(glm::mat4(1.0f), glm::vec3(size, 1.0f));
-
     // Uploads model transform to the active shader
-    shader.SetMat4("u_Model", model);
+    shader.SetMat4("u_Model", modelMatrix);
 
     // Activates VAO
     glBindVertexArray(m_VAO);

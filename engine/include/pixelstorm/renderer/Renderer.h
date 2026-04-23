@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
 
 class Shader;
 
@@ -10,7 +10,7 @@ public:
     Renderer();
     ~Renderer();
 
-    void DrawQuad(const Shader &shader, const glm::vec2 &position, const glm::vec2 &size, float rotationDegrees) const; // Draws a transformed quad
+    void DrawQuad(const Shader &shader, const glm::mat4 &modelMatrix) const; // Draws a quad using a model matrix
 
 private:
     unsigned int m_VAO; // Vertex Array Object
