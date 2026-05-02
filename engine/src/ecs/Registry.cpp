@@ -7,6 +7,8 @@ Registry::Registry()
 
 Entity Registry::CreateEntity()
 {
-    // Creates a new entity
-    return Entity(m_NextEntityId++, this);
+    // Creates a new entity and updates next ID
+    const EntityId entityId = m_NextEntityId++;
+    m_Entities.push_back(entityId);
+    return Entity(entityId, this);
 }
