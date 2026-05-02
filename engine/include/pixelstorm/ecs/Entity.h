@@ -38,23 +38,27 @@ private:
 template <typename T, typename... Args>
 T &Entity::AddComponent(Args &&...args)
 {
+    // Adds component to entity
     return m_Registry->AddComponent<T>(*this, std::forward<Args>(args)...);
 }
 
 template <typename T>
 bool Entity::HasComponent() const
 {
+    // Checks if component exists
     return m_Registry->HasComponent<T>(*this);
 }
 
 template <typename T>
 T &Entity::GetComponent()
 {
+    // Returns component
     return m_Registry->GetComponent<T>(*this);
 }
 
 template <typename T>
 void Entity::RemoveComponent()
 {
+    // Removes component
     m_Registry->RemoveComponent<T>(*this);
 }
