@@ -31,6 +31,8 @@ void Application::Run()
         // Updates clock every frame
         Time::Update();
 
+        UpdateDemo();
+
         // Clears screen with background color
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -53,24 +55,7 @@ void Application::Run()
             }
         }
 
-        // Loops through entities in registry with a transform and sprite renderer
-        for (Entity entity : m_Registry.GetEntitiesWith<Transform, SpriteRenderer>())
-        {
-            // Gets components
-            Transform &transform = m_Registry.GetComponent<Transform>(entity);
-            SpriteRenderer &sprite = m_Registry.GetComponent<SpriteRenderer>(entity);
-
-            // Updates transform
-            transform.Rotation = static_cast<float>(Time::GetElapsedTime() * 45.0);
-
-            // Draws entity
-            if (m_Renderer && shaderToUse && sprite.Visible && sprite.TextureResource)
-            {
-                sprite.TextureResource->Bind();
-                shaderToUse->SetVec4("u_Color", sprite.Color);
-                m_Renderer->DrawQuad(*shaderToUse, transform.GetMatrix());
-            }
-        }
+        RenderEntities(*shaderToUse);
 
         // Updates window
         m_Window->Update();
@@ -159,4 +144,34 @@ Shader *Application::GetActiveShader() const
 {
     // Only uses entity shader if not null
     return m_EntityShader ? m_EntityShader.get() : m_DefaultShader.get();
+}
+
+void Application::UpdateDemo()
+{
+    // Loops through entities in registry with a transform and sprite renderer
+    for (Entity entity : m_Registry.GetEntitiesWith<Transform, SpriteRenderer>())
+    {
+        // Updates transform
+        Transform &transform = m_Registry.GetComponent<Transform>(entity);
+        transform.Rotation = static_cast<float>(Time::GetElapsedTime() * 45.0);
+    }
+}
+
+void Application::RenderEntities(Shader &shader)
+{
+    // Loops through entities in registry with a transform and sprite renderer
+    for (Entity entity : m_Registry.GetEntitiesWith<Transform, SpriteRenderer>())
+    {
+        // Gets components
+        Transform &transform = m_Registry.GetComponent<Transform>(entity);
+        SpriteRenderer &sprite = m_Registry.GetComponent<SpriteRenderer>(entity);
+
+        // Draws entity
+        if (m_Renderer && sprite.Visible && sprite.TextureResource)
+        {
+            sprite.TextureResource->Bind();
+            shader.SetVec4("u_Color", sprite.Color);
+            m_Renderer->DrawQuad(shader, transform.GetMatrix());
+        }
+    }
 }
