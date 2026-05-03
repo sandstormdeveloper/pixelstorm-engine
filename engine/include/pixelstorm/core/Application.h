@@ -23,6 +23,7 @@ private:
     void Init(int width, int height, const char *title); // Initializes application
     void Shutdown();                                     // Shuts down application
 
+    void CreateDemoEntities();           // Creates entities
     void UpdateDemo();                   // Updates entities
     void RenderEntities(Shader &shader); // Renders entities
 
@@ -36,6 +37,4 @@ private:
     std::unique_ptr<Texture> m_Texture;      // First procedural texture
 
     Registry m_Registry;  // Entity registry
-    Entity m_DemoEntity;  // Test entity
-    Entity m_DemoEntity2; // Test entity
 };
