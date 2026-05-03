@@ -8,6 +8,7 @@
 #include "pixelstorm/renderer/Renderer.h"
 #include "pixelstorm/renderer/Shader.h"
 #include "pixelstorm/renderer/Texture.h"
+#include "pixelstorm/ecs/Registry.h"
 
 class Application
 {
@@ -30,6 +31,6 @@ private:
     std::unique_ptr<Shader> m_DefaultShader; // Base shader
     std::unique_ptr<Shader> m_EntityShader;  // Shader for objects
     std::unique_ptr<Texture> m_Texture;      // First procedural texture
-    Transform m_DemoTransform;               // Temporary transform
-    SpriteRenderer m_DemoSprite;             // Temporary sprite component
+    Registry m_Registry;                     // Entity registry
+    Entity m_DemoEntity;                     // Test entity
 };
