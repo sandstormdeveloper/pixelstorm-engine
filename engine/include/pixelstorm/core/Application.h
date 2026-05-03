@@ -33,4 +33,5 @@ private:
     std::unique_ptr<Texture> m_Texture;      // First procedural texture
     Registry m_Registry;                     // Entity registry
     Entity m_DemoEntity;                     // Test entity
+    Entity m_DemoEntity2;                    // Test entity
 };

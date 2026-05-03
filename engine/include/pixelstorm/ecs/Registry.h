@@ -41,6 +41,9 @@ public:
     template <typename T>
     void RemoveComponent(Entity entity); // Removes component from entity
 
+    template <typename... Components>
+    std::vector<Entity> GetEntitiesWith(); // Returns entities with specific components
+
 private:
     template <typename T>
     ComponentPool<T> *GetComponentPool(); // Returns component pool if it exists
@@ -158,4 +161,29 @@ ComponentPool<T> *Registry::GetOrCreateComponentPool()
     ComponentPool<T> *pool = componentPool.get();
     m_ComponentPools[std::type_index(typeid(T))] = std::move(componentPool);
     return pool;
+}
+
+template <typename... Components>
+std::vector<Entity> Registry::GetEntitiesWith() 
+{
+    // Avoids function being called with 0 arguments
+    static_assert(sizeof...(Components) > 0, "GetEntitiesWith requires at least one component type.");
+
+    // List of entities with specified components
+    std::vector<Entity> result;
+
+    // Loops through entities
+    for (EntityId entityId : m_Entities)
+    {
+        Entity entity(entityId, this);
+
+        // Checks if entity has all components
+        if ((HasComponent<Components>(entity) && ...))
+        {
+            // Adds entity to returned list
+            result.push_back(entity);
+        }
+    }
+
+    return result;
 }

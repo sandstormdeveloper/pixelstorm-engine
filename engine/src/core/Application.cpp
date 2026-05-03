@@ -53,19 +53,23 @@ void Application::Run()
             }
         }
 
-        // Gets components
-        Transform &transform = m_Registry.GetComponent<Transform>(m_DemoEntity);
-        SpriteRenderer &sprite = m_Registry.GetComponent<SpriteRenderer>(m_DemoEntity);
-        
-        // Updates demo transform
-        transform.Rotation = static_cast<float>(Time::GetElapsedTime() * 45.0);
-
-        // Draws the demo sprite through Transform + SpriteRenderer
-        if (m_Renderer && shaderToUse && sprite.Visible && sprite.TextureResource)
+        // Loops through entities in registry with a transform and sprite renderer
+        for (Entity entity : m_Registry.GetEntitiesWith<Transform, SpriteRenderer>())
         {
-            sprite.TextureResource->Bind();
-            shaderToUse->SetVec4("u_Color", sprite.Color);
-            m_Renderer->DrawQuad(*shaderToUse, transform.GetMatrix());
+            // Gets components
+            Transform &transform = m_Registry.GetComponent<Transform>(entity);
+            SpriteRenderer &sprite = m_Registry.GetComponent<SpriteRenderer>(entity);
+
+            // Updates transform
+            transform.Rotation = static_cast<float>(Time::GetElapsedTime() * 45.0);
+
+            // Draws entity
+            if (m_Renderer && shaderToUse && sprite.Visible && sprite.TextureResource)
+            {
+                sprite.TextureResource->Bind();
+                shaderToUse->SetVec4("u_Color", sprite.Color);
+                m_Renderer->DrawQuad(*shaderToUse, transform.GetMatrix());
+            }
         }
 
         // Updates window
@@ -100,19 +104,31 @@ void Application::Init(int width, int height, const char *title)
 
     // Creates test entity with registry
     m_DemoEntity = m_Registry.CreateEntity();
+    m_DemoEntity2 = m_Registry.CreateEntity();
 
     // Adds transform component to test entity
     m_Registry.AddComponent<Transform>(
         m_DemoEntity,
-        glm::vec2(0.0f, 0.0f),
-        glm::vec2(1.5f, 1.5f),
+        glm::vec2(-0.75f, 0.0f),
+        glm::vec2(0.75f, 0.75f),
+        0.0f);
+
+    m_Registry.AddComponent<Transform>(
+        m_DemoEntity2,
+        glm::vec2(0.75f, 0.0f),
+        glm::vec2(0.75f, 0.75f),
         0.0f);
 
     // Adds sprite renderer component to test entity
     m_Registry.AddComponent<SpriteRenderer>(
         m_DemoEntity,
         m_Texture.get(),
-        glm::vec4(1.0f, 0.9f, 0.9f, 1.0f));
+        glm::vec4(1.0f, 0.9f, 0.4f, 1.0f));
+
+    m_Registry.AddComponent<SpriteRenderer>(
+        m_DemoEntity2,
+        m_Texture.get(),
+        glm::vec4(0.4f, 0.8f, 1.0f, 1.0f));
 
     // Sets default shaders (can be overwritten)
     m_DefaultShader = std::make_unique<Shader>("default");
