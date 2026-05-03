@@ -54,7 +54,10 @@ void Application::Run()
                 shaderToUse->SetMat4("u_ViewProjection", m_Camera->GetViewProjectionMatrix());
             }
 
-            RenderEntities(*shaderToUse);
+            if (m_Renderer)
+            {
+                m_RenderSystem.Render(m_Registry, *m_Renderer, *shaderToUse);
+            }
         }
 
         // Updates window
@@ -157,24 +160,5 @@ void Application::UpdateDemo()
         // Updates transform
         Transform &transform = m_Registry.GetComponent<Transform>(entity);
         transform.Rotation = static_cast<float>(Time::GetElapsedTime() * 45.0);
-    }
-}
-
-void Application::RenderEntities(Shader &shader)
-{
-    // Loops through entities in registry with a transform and sprite renderer
-    for (Entity entity : m_Registry.GetEntitiesWith<Transform, SpriteRenderer>())
-    {
-        // Gets components
-        Transform &transform = m_Registry.GetComponent<Transform>(entity);
-        SpriteRenderer &sprite = m_Registry.GetComponent<SpriteRenderer>(entity);
-
-        // Draws entity
-        if (m_Renderer && sprite.Visible && sprite.TextureResource)
-        {
-            sprite.TextureResource->Bind();
-            shader.SetVec4("u_Color", sprite.Color);
-            m_Renderer->DrawQuad(shader, transform.GetMatrix());
-        }
     }
 }
