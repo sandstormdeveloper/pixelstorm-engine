@@ -20,12 +20,12 @@ public:
     void Run();                                     // Game loop
     void SetDefaultShader(const std::string &name); // Sets default shader used
 
+    Registry &GetRegistry();      // Returns registry
+    Texture *GetDefaultTexture(); // Returns default texture
+
 private:
     void Init(int width, int height, const char *title); // Initializes application
     void Shutdown();                                     // Shuts down application
-
-    void CreateDemoEntities(); // Creates entities
-    void UpdateDemo();         // Updates entities
 
     Shader *GetActiveShader() const; // Returns active shader
 

@@ -31,8 +31,6 @@ void Application::Run()
         // Updates clock every frame
         Time::Update();
 
-        UpdateDemo();
-
         // Clears screen with background color
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -93,9 +91,6 @@ void Application::Init(int width, int height, const char *title)
     // Sets default shaders (can be overwritten)
     m_DefaultShader = std::make_unique<Shader>("default");
     m_EntityShader.reset();
-
-    // Creates test entities
-    CreateDemoEntities();
 }
 
 void Application::Shutdown()
@@ -124,41 +119,12 @@ Shader *Application::GetActiveShader() const
     return m_EntityShader ? m_EntityShader.get() : m_DefaultShader.get();
 }
 
-void Application::CreateDemoEntities()
+Registry &Application::GetRegistry()
 {
-    Entity demoEntity = m_Registry.CreateEntity();
-    Entity secondDemoEntity = m_Registry.CreateEntity();
-
-    m_Registry.AddComponent<Transform>(
-        demoEntity,
-        glm::vec2(-0.75f, 0.0f),
-        glm::vec2(0.75f, 0.75f),
-        0.0f);
-
-    m_Registry.AddComponent<Transform>(
-        secondDemoEntity,
-        glm::vec2(0.75f, 0.0f),
-        glm::vec2(0.75f, 0.75f),
-        0.0f);
-
-    m_Registry.AddComponent<SpriteRenderer>(
-        demoEntity,
-        m_Texture.get(),
-        glm::vec4(1.0f, 0.9f, 0.4f, 1.0f));
-
-    m_Registry.AddComponent<SpriteRenderer>(
-        secondDemoEntity,
-        m_Texture.get(),
-        glm::vec4(0.4f, 0.8f, 1.0f, 1.0f));
+    return m_Registry;
 }
 
-void Application::UpdateDemo()
+Texture *Application::GetDefaultTexture()
 {
-    // Loops through entities in registry with a transform and sprite renderer
-    for (Entity entity : m_Registry.GetEntitiesWith<Transform, SpriteRenderer>())
-    {
-        // Updates transform
-        Transform &transform = m_Registry.GetComponent<Transform>(entity);
-        transform.Rotation = static_cast<float>(Time::GetElapsedTime() * 45.0);
-    }
+    return m_Texture.get();
 }
