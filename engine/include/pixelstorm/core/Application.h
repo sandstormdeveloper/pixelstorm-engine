@@ -3,6 +3,8 @@
 #include <string>
 #include "pixelstorm/components/SpriteRenderer.h"
 #include "pixelstorm/components/Transform.h"
+#include "pixelstorm/components/Collider.h"
+#include "pixelstorm/components/Rigidbody.h"
 #include "pixelstorm/core/Window.h"
 #include "pixelstorm/renderer/Camera2D.h"
 #include "pixelstorm/renderer/Renderer.h"
