@@ -7,5 +7,5 @@ class Shader;
 class RenderSystem
 {
 public:
-    void Render(Registry &registry, Renderer &renderer, Shader &shader);
+    void Render(Registry &registry, Renderer &renderer, Shader &shader); // Renders entities
 };
