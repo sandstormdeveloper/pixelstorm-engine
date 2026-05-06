@@ -70,3 +70,9 @@ void Window::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
     (void)window;
     glViewport(0, 0, width, height);
 }
+
+GLFWwindow *Window::GetNativeWindow() const
+{
+    // Returns GLFW window
+    return m_Window;
+}

@@ -1,6 +1,8 @@
 #include "pixelstorm/core/Application.h"
 #include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Time.h"
+#include <pixelstorm/input/Input.h>
+
 #include <glad/glad.h>
 #include <glm/vec4.hpp>
 #include <memory>
@@ -30,6 +32,12 @@ void Application::Run()
     {
         // Updates clock every frame
         Time::Update();
+
+        // If an update callback has been defined
+        if (m_UpdateCallback)
+        {
+            m_UpdateCallback(Time::GetDeltaTime());
+        }
 
         // Clears screen with background color
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -70,6 +78,9 @@ void Application::Init(int width, int height, const char *title)
 
     // Creates window with specified parameters
     m_Window = std::make_unique<Window>(width, height, title);
+
+    // Sets window used by input
+    Input::SetWindow(m_Window->GetNativeWindow());
 
     // Starts clock
     Time::Init();
@@ -119,6 +130,11 @@ Shader *Application::GetActiveShader() const
 {
     // Only uses entity shader if not null
     return m_EntityShader ? m_EntityShader.get() : m_DefaultShader.get();
+}
+
+void Application::SetUpdate(const std::function<void(float)> &callback)
+{
+    m_UpdateCallback = callback;
 }
 
 Registry &Application::GetRegistry()

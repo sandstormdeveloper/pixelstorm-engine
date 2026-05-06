@@ -1,5 +1,7 @@
 #include "pixelstorm/input/Input.h"
 
+GLFWwindow *Input::s_Window = nullptr;
+
 void Input::SetWindow(GLFWwindow *window)
 {
     // Sets window used by GLFW

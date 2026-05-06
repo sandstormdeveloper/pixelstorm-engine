@@ -1,4 +1,5 @@
 #include "pixelstorm/core/Application.h"
+#include "pixelstorm/input/Input.h"
 
 int main()
 {
@@ -19,25 +20,29 @@ int main()
         player,
         glm::vec2(160.0f, 180.0f),
         glm::vec2(32.0f, 32.0f),
-        0.0f);
+        0.0f
+    );
 
     // Adds sprite renderer component to player
     registry.AddComponent<SpriteRenderer>(
         player,
         app.GetDefaultTexture(),
-        glm::vec4(1.0f, 0.3f, 0.3f, 1.0f));
+        glm::vec4(1.0f, 0.3f, 0.3f, 1.0f)
+    );
 
     // Adds collider component to player
     registry.AddComponent<Collider>(
         player,
-        glm::vec2(32.0f, 32.0f));
+        glm::vec2(32.0f, 32.0f)
+    );
 
     // Adds rigidbody component to player
     registry.AddComponent<Rigidbody>(
         player,
         glm::vec2(0.0f, 0.0f),
         1.0f,
-        false);
+        false
+    );
 
     // Creates wall entity
     Entity wall = registry.CreateEntity();
@@ -47,25 +52,47 @@ int main()
         wall,
         glm::vec2(240.0f, 180.0f),
         glm::vec2(32.0f, 32.0f),
-        0.0f);
+        0.0f
+    );
 
     // Adds sprite renderer component to wall
     registry.AddComponent<SpriteRenderer>(
         wall,
         app.GetDefaultTexture(),
-        glm::vec4(0.3f, 0.6f, 1.0f, 1.0f));
+        glm::vec4(0.3f, 0.6f, 1.0f, 1.0f)
+    );
 
     // Adds collider component to wall
     registry.AddComponent<Collider>(
         wall,
-        glm::vec2(32.0f, 32.0f));
+        glm::vec2(32.0f, 32.0f)
+    );
 
     // Adds rigidbody component to wall
     registry.AddComponent<Rigidbody>(
         wall,
         glm::vec2(0.0f, 0.0f),
         1.0f,
-        true);
+        true
+    );
+
+    app.SetUpdate([&](float deltaTime) {
+        Transform& transform = registry.GetComponent<Transform>(player);
+
+        const float speed = 120.0f;
+
+        if (Input::IsKeyPressed(GLFW_KEY_D))
+            transform.Position.x += speed * deltaTime;
+
+        if (Input::IsKeyPressed(GLFW_KEY_A))
+            transform.Position.x -= speed * deltaTime;
+
+        if (Input::IsKeyPressed(GLFW_KEY_W))
+            transform.Position.y -= speed * deltaTime;
+
+        if (Input::IsKeyPressed(GLFW_KEY_S))
+            transform.Position.y += speed * deltaTime; 
+    });
 
     // Starts the app
     app.Run();

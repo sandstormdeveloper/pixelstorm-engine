@@ -10,6 +10,8 @@ public:
     void Update();            // Updates window
     bool ShouldClose() const; // Returns if the window should close
 
+    GLFWwindow *GetNativeWindow() const; // Getter for m_Window
+
 private:
     static void FramebufferSizeCallback(GLFWwindow *window, int width, int height); // Adjusts viewport when windows is resized
 

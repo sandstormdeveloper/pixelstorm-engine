@@ -1,6 +1,5 @@
 #pragma once
-#include <memory>
-#include <string>
+
 #include "pixelstorm/components/SpriteRenderer.h"
 #include "pixelstorm/components/Transform.h"
 #include "pixelstorm/components/Collider.h"
@@ -13,6 +12,10 @@
 #include "pixelstorm/ecs/Registry.h"
 #include "pixelstorm/systems/RenderSystem.h"
 
+#include <memory>
+#include <string>
+#include <functional>
+
 class Application
 {
 public:
@@ -21,6 +24,8 @@ public:
 
     void Run();                                     // Game loop
     void SetDefaultShader(const std::string &name); // Sets default shader used
+
+    void SetUpdate(const std::function<void(float)> &callback); // Passes update function to application
 
     Registry &GetRegistry();      // Returns registry
     Texture *GetDefaultTexture(); // Returns default texture
@@ -40,4 +45,6 @@ private:
 
     Registry m_Registry;         // Entity registry
     RenderSystem m_RenderSystem; // Render system
+
+    std::function<void(float)> m_UpdateCallback; // Update callback
 };
