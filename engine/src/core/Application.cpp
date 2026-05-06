@@ -81,9 +81,11 @@ void Application::Init(int width, int height, const char *title)
     m_Renderer = std::make_unique<Renderer>();
 
     // Creates camera
-    const float safeHeight = height > 0 ? static_cast<float>(height) : 1.0f;
-    const float aspectRatio = static_cast<float>(width) / safeHeight;
-    m_Camera = std::make_unique<Camera2D>(-aspectRatio, aspectRatio, -1.0f, 1.0f);
+    m_Camera = std::make_unique<Camera2D>(
+        0.0f,
+        static_cast<float>(width),
+        static_cast<float>(height),
+        0.0f);
 
     // Creates texture
     m_Texture = std::make_unique<Texture>();

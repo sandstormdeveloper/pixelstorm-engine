@@ -17,8 +17,8 @@ int main()
     // Adds transform component to player
     registry.AddComponent<Transform>(
         player,
-        glm::vec2(-0.5f, 0.0f),
-        glm::vec2(0.5f, 0.5f),
+        glm::vec2(160.0f, 180.0f),
+        glm::vec2(32.0f, 32.0f),
         0.0f);
 
     // Adds sprite renderer component to player
@@ -30,7 +30,7 @@ int main()
     // Adds collider component to player
     registry.AddComponent<Collider>(
         player,
-        glm::vec2(0.5f, 0.5f));
+        glm::vec2(32.0f, 32.0f));
 
     // Adds rigidbody component to player
     registry.AddComponent<Rigidbody>(
@@ -45,8 +45,8 @@ int main()
     // Adds transform component to wall
     registry.AddComponent<Transform>(
         wall,
-        glm::vec2(0.5f, 0.0f),
-        glm::vec2(0.5f, 0.5f),
+        glm::vec2(240.0f, 180.0f),
+        glm::vec2(32.0f, 32.0f),
         0.0f);
 
     // Adds sprite renderer component to wall
@@ -58,7 +58,7 @@ int main()
     // Adds collider component to wall
     registry.AddComponent<Collider>(
         wall,
-        glm::vec2(0.5f, 0.5f));
+        glm::vec2(32.0f, 32.0f));
 
     // Adds rigidbody component to wall
     registry.AddComponent<Rigidbody>(
