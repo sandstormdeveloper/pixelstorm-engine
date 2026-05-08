@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <typeindex>
 #include <unordered_map>
 #include <utility>
@@ -27,7 +28,8 @@ class Registry
 public:
     Registry();
 
-    Entity CreateEntity(); // Creates a new entity with a unique ID
+    Entity CreateEntity();                        // Creates a new entity with a unique ID
+    Entity CreateEntity(const std::string &name); // Creates a named entity
 
     template <typename T, typename... Args>
     T &AddComponent(Entity entity, Args &&...args); // Adds component to entity
@@ -44,6 +46,9 @@ public:
     template <typename... Components>
     std::vector<Entity> GetEntitiesWith(); // Returns entities with specific components
 
+    void SetEntityName(Entity entity, const std::string &name); // Stores a debug/game-facing entity name
+    std::string GetEntityName(Entity entity) const;             // Returns entity name, if any
+
 private:
     template <typename T>
     ComponentPool<T> *GetComponentPool(); // Returns component pool if it exists
@@ -56,6 +61,7 @@ private:
 
     EntityId m_NextEntityId;                                                               // Next entity ID
     std::vector<EntityId> m_Entities;                                                      // Created entities
+    std::unordered_map<EntityId, std::string> m_EntityNames;                               // Optional entity names
     std::unordered_map<std::type_index, std::unique_ptr<IComponentPool>> m_ComponentPools; // All component pools
 };
 
@@ -164,7 +170,7 @@ ComponentPool<T> *Registry::GetOrCreateComponentPool()
 }
 
 template <typename... Components>
-std::vector<Entity> Registry::GetEntitiesWith() 
+std::vector<Entity> Registry::GetEntitiesWith()
 {
     // Avoids function being called with 0 arguments
     static_assert(sizeof...(Components) > 0, "GetEntitiesWith requires at least one component type.");

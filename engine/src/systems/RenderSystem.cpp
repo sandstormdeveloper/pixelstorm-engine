@@ -6,7 +6,7 @@
 #include "pixelstorm/renderer/Shader.h"
 #include "pixelstorm/renderer/Texture.h"
 
-void RenderSystem::Render(Registry &registry, Renderer &renderer, Shader &shader)
+void RenderSystem::Render(Registry &registry, Renderer &renderer, Shader &shader, Texture *fallbackTexture)
 {
     // Loops through entities in registry with a transform and sprite renderer
     for (Entity entity : registry.GetEntitiesWith<Transform, SpriteRenderer>())
@@ -15,10 +15,13 @@ void RenderSystem::Render(Registry &registry, Renderer &renderer, Shader &shader
         Transform &transform = registry.GetComponent<Transform>(entity);
         SpriteRenderer &sprite = registry.GetComponent<SpriteRenderer>(entity);
 
-        // Draws entity
-        if (sprite.Visible && sprite.TextureResource)
+        // Uses default texture if no texture is loaded
+        Texture *texture = sprite.TextureResource ? sprite.TextureResource : fallbackTexture;
+
+        // Draws entity if valid
+        if (sprite.Visible && texture)
         {
-            sprite.TextureResource->Bind();
+            texture->Bind();
             shader.SetVec4("u_Color", sprite.Color);
             renderer.DrawQuad(shader, transform.GetMatrix());
         }

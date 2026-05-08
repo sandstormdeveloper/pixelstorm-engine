@@ -1,20 +1,18 @@
 #pragma once
 
-#include "pixelstorm/components/SpriteRenderer.h"
-#include "pixelstorm/components/Transform.h"
-#include "pixelstorm/components/Collider.h"
-#include "pixelstorm/components/Rigidbody.h"
-#include "pixelstorm/core/Window.h"
-#include "pixelstorm/renderer/Camera2D.h"
-#include "pixelstorm/renderer/Renderer.h"
-#include "pixelstorm/renderer/Shader.h"
-#include "pixelstorm/renderer/Texture.h"
-#include "pixelstorm/ecs/Registry.h"
-#include "pixelstorm/systems/RenderSystem.h"
+#include "pixelstorm/ecs/World.h"
 
+#include <functional>
 #include <memory>
 #include <string>
-#include <functional>
+
+class Camera2D;
+class Registry;
+class Renderer;
+class RenderSystem;
+class Shader;
+class Texture;
+class Window;
 
 class Application
 {
@@ -27,6 +25,7 @@ public:
 
     void SetUpdate(const std::function<void(float)> &callback); // Passes update function to application
 
+    World GetWorld();             // Returns game world handle
     Registry &GetRegistry();      // Returns registry
     Texture *GetDefaultTexture(); // Returns default texture
 
@@ -36,15 +35,15 @@ private:
 
     Shader *GetActiveShader() const; // Returns active shader
 
-    std::unique_ptr<Window> m_Window;        // Main window
-    std::unique_ptr<Renderer> m_Renderer;    // Basic 2D renderer
-    std::unique_ptr<Camera2D> m_Camera;      // Main 2D camera
-    std::unique_ptr<Shader> m_DefaultShader; // Base shader
-    std::unique_ptr<Shader> m_EntityShader;  // Shader for objects
-    std::unique_ptr<Texture> m_Texture;      // First procedural texture
+    std::unique_ptr<Window> m_Window;             // Main window
+    std::unique_ptr<Renderer> m_Renderer;         // Basic 2D renderer
+    std::unique_ptr<Camera2D> m_Camera;           // Main 2D camera
+    std::unique_ptr<Shader> m_DefaultShader;      // Base shader
+    std::unique_ptr<Shader> m_EntityShader;       // Shader for objects
+    std::unique_ptr<Texture> m_Texture;           // First procedural texture
+    std::unique_ptr<RenderSystem> m_RenderSystem; // Render system
 
-    Registry m_Registry;         // Entity registry
-    RenderSystem m_RenderSystem; // Render system
+    Registry m_Registry; // Entity registry
 
     std::function<void(float)> m_UpdateCallback; // Update callback
 };

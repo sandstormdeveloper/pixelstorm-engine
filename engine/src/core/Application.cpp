@@ -1,6 +1,12 @@
 #include "pixelstorm/core/Application.h"
 #include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Time.h"
+#include "pixelstorm/core/Window.h"
+#include "pixelstorm/renderer/Camera2D.h"
+#include "pixelstorm/renderer/Renderer.h"
+#include "pixelstorm/renderer/Shader.h"
+#include "pixelstorm/renderer/Texture.h"
+#include "pixelstorm/systems/RenderSystem.h"
 #include <pixelstorm/input/Input.h>
 
 #include <glad/glad.h>
@@ -60,9 +66,10 @@ void Application::Run()
                 shaderToUse->SetMat4("u_ViewProjection", m_Camera->GetViewProjectionMatrix());
             }
 
+            // Renders
             if (m_Renderer)
             {
-                m_RenderSystem.Render(m_Registry, *m_Renderer, *shaderToUse);
+                m_RenderSystem->Render(m_Registry, *m_Renderer, *shaderToUse, m_Texture.get());
             }
         }
 
@@ -90,6 +97,7 @@ void Application::Init(int width, int height, const char *title)
 
     // Creates renderer
     m_Renderer = std::make_unique<Renderer>();
+    m_RenderSystem = std::make_unique<RenderSystem>();
 
     // Creates camera
     m_Camera = std::make_unique<Camera2D>(
@@ -116,6 +124,7 @@ void Application::Shutdown()
 
     // Destroys objects
     m_Texture.reset();
+    m_RenderSystem.reset();
     m_Camera.reset();
     m_Renderer.reset();
     m_EntityShader.reset();
@@ -135,6 +144,11 @@ Shader *Application::GetActiveShader() const
 void Application::SetUpdate(const std::function<void(float)> &callback)
 {
     m_UpdateCallback = callback;
+}
+
+World Application::GetWorld()
+{
+    return World(m_Registry);
 }
 
 Registry &Application::GetRegistry()

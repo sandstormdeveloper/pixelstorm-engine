@@ -7,6 +7,13 @@ SpriteRenderer::SpriteRenderer()
 {
 }
 
+SpriteRenderer::SpriteRenderer(const glm::vec4 &color, bool visible)
+    : TextureResource(nullptr),
+      Color(color),
+      Visible(visible)
+{
+}
+
 SpriteRenderer::SpriteRenderer(Texture *texture, const glm::vec4 &color, bool visible)
     : TextureResource(texture),
       Color(color),
