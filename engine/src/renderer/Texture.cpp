@@ -1,4 +1,6 @@
 #include "pixelstorm/renderer/Texture.h"
+
+#include "pixelstorm/core/Log.h"
 #include <glad/glad.h>
 
 Texture::Texture()
@@ -29,6 +31,7 @@ Texture::Texture()
 
     // Unbinds texture
     glBindTexture(GL_TEXTURE_2D, 0);
+    Log::Info("Default procedural texture created.");
 }
 
 Texture::~Texture()
@@ -37,6 +40,7 @@ Texture::~Texture()
     if (m_ID != 0)
     {
         glDeleteTextures(1, &m_ID);
+        Log::Info("Texture resources released.");
     }
 }
 

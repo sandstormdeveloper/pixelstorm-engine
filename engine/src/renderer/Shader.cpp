@@ -9,6 +9,7 @@
 #define SHADER_PATH "assets/shaders/"
 
 Shader::Shader(const std::string &name)
+    : m_ID(0)
 {
     // Builds paths
     std::string vertexPath = std::string(SHADER_PATH) + name + ".vert";
@@ -38,6 +39,20 @@ Shader::Shader(const std::string &name)
     // Links shaders
     glLinkProgram(m_ID);
 
+    // Validates link result
+    int success = 0;
+    glGetProgramiv(m_ID, GL_LINK_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[512];
+        glGetProgramInfoLog(m_ID, sizeof(infoLog), nullptr, infoLog);
+        Log::Error("Failed to link shader program '" + name + "': " + std::string(infoLog));
+    }
+    else
+    {
+        Log::Info("Shader program '" + name + "' linked successfully.");
+    }
+
     // Deletes temp shaders
     glDeleteShader(vertex);
     glDeleteShader(fragment);
@@ -46,7 +61,10 @@ Shader::Shader(const std::string &name)
 Shader::~Shader()
 {
     // Deletes program
-    glDeleteProgram(m_ID);
+    if (m_ID != 0)
+    {
+        glDeleteProgram(m_ID);
+    }
 }
 
 void Shader::Use()
@@ -101,5 +119,17 @@ unsigned int Shader::Compile(unsigned int type, const char *source)
 
     // Compiles shader
     glCompileShader(shader);
+
+    // Validates shader compilation
+    int success = 0;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        char infoLog[512];
+        glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
+        const std::string shaderType = (type == GL_VERTEX_SHADER) ? "vertex" : "fragment";
+        Log::Error("Failed to compile " + shaderType + " shader: " + std::string(infoLog));
+    }
+
     return shader;
 }

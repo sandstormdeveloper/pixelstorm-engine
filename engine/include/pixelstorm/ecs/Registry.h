@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pixelstorm/core/Log.h"
 #include "pixelstorm/ecs/Entity.h"
 
 #include <memory>
@@ -41,6 +42,9 @@ public:
     T &GetComponent(Entity entity); // Returns specific component
 
     template <typename T>
+    const T &GetComponent(Entity entity) const; // Returns specific component in read-only mode
+
+    template <typename T>
     void RemoveComponent(Entity entity); // Removes component from entity
 
     template <typename... Components>
@@ -76,6 +80,11 @@ T &Registry::AddComponent(Entity entity, Args &&...args)
     if (iterator == pool->Components.end())
     {
         iterator = pool->Components.emplace(entity.GetId(), T(std::forward<Args>(args)...)).first;
+    }
+    else
+    {
+        // Warns if a component is added twice to the same entity
+        Log::Warning("Entity " + std::to_string(entity.GetId()) + " already has this component. Existing instance will be reused.");
     }
 
     return iterator->second;
@@ -117,6 +126,26 @@ T &Registry::GetComponent(Entity entity)
 }
 
 template <typename T>
+const T &Registry::GetComponent(Entity entity) const
+{
+    // Gets the component pool for this type in read-only mode
+    const ComponentPool<T> *pool = GetComponentPool<T>();
+    if (!pool)
+    {
+        throw std::runtime_error("Component pool not found.");
+    }
+
+    // Gets the component stored for the entity
+    typename std::unordered_map<EntityId, T>::const_iterator iterator = pool->Components.find(entity.GetId());
+    if (iterator == pool->Components.end())
+    {
+        throw std::runtime_error("Component not found for entity.");
+    }
+
+    return iterator->second;
+}
+
+template <typename T>
 void Registry::RemoveComponent(Entity entity)
 {
     // Gets the pool if it exists and removes the component entry
@@ -124,6 +153,11 @@ void Registry::RemoveComponent(Entity entity)
     if (pool)
     {
         pool->Components.erase(entity.GetId());
+    }
+    else
+    {
+        // Warns if there is no pool for the component type
+        Log::Warning("Attempted to remove a component from entity " + std::to_string(entity.GetId()) + ", but no pool exists for that component type.");
     }
 }
 

@@ -14,6 +14,7 @@
 #include <memory>
 
 Application::Application(int width, int height, const char *title)
+    : m_World(m_Registry)
 {
     // Initializes the application
     Init(width, height, title);
@@ -33,6 +34,9 @@ void Application::SetDefaultShader(const std::string &name)
 
 void Application::Run()
 {
+    // Run message
+    Log::Info("Application main loop started.");
+
     // Loops until window is closed
     while (!m_Window->ShouldClose())
     {
@@ -76,6 +80,9 @@ void Application::Run()
         // Updates window
         m_Window->Update();
     }
+
+    // Run end message
+    Log::Info("Application main loop finished.");
 }
 
 void Application::Init(int width, int height, const char *title)
@@ -98,6 +105,7 @@ void Application::Init(int width, int height, const char *title)
     // Creates renderer
     m_Renderer = std::make_unique<Renderer>();
     m_RenderSystem = std::make_unique<RenderSystem>();
+    Log::Info("Renderer and render system created.");
 
     // Creates camera
     m_Camera = std::make_unique<Camera2D>(
@@ -105,6 +113,7 @@ void Application::Init(int width, int height, const char *title)
         static_cast<float>(width),
         static_cast<float>(height),
         0.0f);
+    Log::Info("Main 2D camera created.");
 
     // Creates texture
     m_Texture = std::make_unique<Texture>();
@@ -112,6 +121,7 @@ void Application::Init(int width, int height, const char *title)
     // Sets default shaders (can be overwritten)
     m_DefaultShader = std::make_unique<Shader>("default");
     m_EntityShader.reset();
+    Log::Info("Default rendering resources created.");
 }
 
 void Application::Shutdown()
@@ -141,22 +151,21 @@ Shader *Application::GetActiveShader() const
     return m_EntityShader ? m_EntityShader.get() : m_DefaultShader.get();
 }
 
-void Application::SetUpdate(const std::function<void(float)> &callback)
+void Application::OnUpdate(const std::function<void(float)> &callback)
 {
+    // Stores game update callback
     m_UpdateCallback = callback;
+    Log::Info("Application update callback registered.");
 }
 
-World Application::GetWorld()
+World &Application::GetWorld()
 {
-    return World(m_Registry);
+    // Returns persistent world handle
+    return m_World;
 }
 
-Registry &Application::GetRegistry()
+const World &Application::GetWorld() const
 {
-    return m_Registry;
-}
-
-Texture *Application::GetDefaultTexture()
-{
-    return m_Texture.get();
+    // Returns persistent world handle in read-only mode
+    return m_World;
 }

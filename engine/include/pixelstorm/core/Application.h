@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pixelstorm/ecs/Registry.h"
 #include "pixelstorm/ecs/World.h"
 
 #include <functional>
@@ -7,7 +8,6 @@
 #include <string>
 
 class Camera2D;
-class Registry;
 class Renderer;
 class RenderSystem;
 class Shader;
@@ -23,11 +23,10 @@ public:
     void Run();                                     // Game loop
     void SetDefaultShader(const std::string &name); // Sets default shader used
 
-    void SetUpdate(const std::function<void(float)> &callback); // Passes update function to application
+    void OnUpdate(const std::function<void(float)> &callback); // Passes update function to application
 
-    World GetWorld();             // Returns game world handle
-    Registry &GetRegistry();      // Returns registry
-    Texture *GetDefaultTexture(); // Returns default texture
+    World &GetWorld();             // Returns game world handle
+    const World &GetWorld() const; // Returns read-only game world handle
 
 private:
     void Init(int width, int height, const char *title); // Initializes application
@@ -44,6 +43,7 @@ private:
     std::unique_ptr<RenderSystem> m_RenderSystem; // Render system
 
     Registry m_Registry; // Entity registry
+    World m_World;       // Public game world handle
 
     std::function<void(float)> m_UpdateCallback; // Update callback
 };

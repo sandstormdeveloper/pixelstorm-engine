@@ -10,6 +10,7 @@ Entity Registry::CreateEntity()
     // Creates a new entity and updates next ID
     const EntityId entityId = m_NextEntityId++;
     m_Entities.push_back(entityId);
+    Log::Info("Entity created with id " + std::to_string(entityId) + ".");
     return Entity(entityId, this);
 }
 
@@ -27,6 +28,11 @@ void Registry::SetEntityName(Entity entity, const std::string &name)
     if (entity.IsValid())
     {
         m_EntityNames[entity.GetId()] = name;
+        Log::Info("Entity " + std::to_string(entity.GetId()) + " named '" + name + "'.");
+    }
+    else
+    {
+        Log::Warning("Attempted to name an invalid entity.");
     }
 }
 

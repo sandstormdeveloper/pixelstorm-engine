@@ -5,79 +5,35 @@ int main()
     // Creates window
     Application app(640, 360, "Demo");
 
-    // Gets world (entity registry)
+    // Gets world handle
     World world = app.GetWorld();
 
-    // Creates player entity and adds components
-    Entity player = world.CreateEntity("Player");
-    player.AddComponent<Transform>(
-        glm::vec2(160.0f, 180.0f),
-        glm::vec2(32.0f, 32.0f),
-        0.0f
-    );
-    player.AddComponent<SpriteRenderer>(
-        glm::vec4(1.0f, 0.3f, 0.3f, 1.0f)
-    );
-    player.AddComponent<Collider>(
-        glm::vec2(32.0f, 32.0f)
-    );
-    player.AddComponent<Rigidbody>(
-        glm::vec2(0.0f, 0.0f),
-        1.0f,
-        false
+    // Creates player entity with common gameplay components
+    Entity player = world.CreateActor(
+        "Player",
+        Vec2(160.0f, 180.0f),
+        Vec2(32.0f, 32.0f),
+        Colors::Red()
     );
 
-    // Creates wall entity and adds components
-    Entity wall = world.CreateEntity("Wall");
-    wall.AddComponent<Transform>(
-        glm::vec2(240.0f, 180.0f),
-        glm::vec2(32.0f, 32.0f),
-        0.0f
-    );
-    wall.AddComponent<SpriteRenderer>(
-        glm::vec4(0.3f, 0.6f, 1.0f, 1.0f)
-    );
-    wall.AddComponent<Collider>(
-        glm::vec2(32.0f, 32.0f)
-    );
-    wall.AddComponent<Rigidbody>(
-        glm::vec2(0.0f, 0.0f),
-        1.0f,
-        true
+    // Creates wall entity with common static box components
+    Entity wall = world.CreateStaticBox(
+        "Wall",
+        Vec2(240.0f, 180.0f),
+        Vec2(32.0f, 32.0f),
+        Colors::Blue()
     );
 
     // Update loop
-    app.SetUpdate([&](float deltaTime) {
-
-        // Gets player transform
-        Transform &transform = player.GetComponent<Transform>();
-
+    app.OnUpdate([&](float deltaTime) {
         // Player speed
         const float speed = 120.0f;
 
-        // Right
-        if (Input::IsKeyDown(Key::D))
-        {
-            transform.Position.x += speed * deltaTime;
-        }
+        // Gets movement from named input axis
+        const Vec2 movement = Input::GetAxis2D(Axis2D::Move);
 
-        // Left
-        if (Input::IsKeyDown(Key::A))
-        {
-            transform.Position.x -= speed * deltaTime;
-        }
-
-        // Up
-        if (Input::IsKeyDown(Key::W))
-        {
-            transform.Position.y -= speed * deltaTime;
-        }
-
-        // Down
-        if (Input::IsKeyDown(Key::S))
-        {
-            transform.Position.y += speed * deltaTime;
-        }
+        // Moves player in pixel coordinates
+        player.Transform().Translate(movement * speed * deltaTime);
     });
 
     // Runs application
