@@ -41,10 +41,10 @@ bool Input::IsKeyPressed(int key)
 
 float Input::GetAxis(Axis axis)
 {
-    // Horizontal movement axis
+    // Movement axes mapped to keyboard input
     switch (axis)
     {
-    case Axis::MoveX:
+    case Axis::Horizontal:
     {
         float axis = 0.0f;
 
@@ -60,44 +60,41 @@ float Input::GetAxis(Axis axis)
 
         return axis;
     }
+    case Axis::Vertical:
+    {
+        float axis = 0.0f;
+
+        // Screen-space coordinates: positive Y goes down
+        if (IsKeyPressed(Key::S))
+        {
+            axis += 1.0f;
+        }
+
+        if (IsKeyPressed(Key::W))
+        {
+            axis -= 1.0f;
+        }
+
+        return axis;
+    }
     }
 
     // Returns neutral value if axis is unknown
     return 0.0f;
 }
 
-Vec2 Input::GetAxis2D(Axis2D axis)
+Vec2 Input::GetAxis2D()
 {
     // Returns 2D movement vector
-    switch (axis)
+    Vec2 movement(
+        GetAxis(Axis::Horizontal),
+        GetAxis(Axis::Vertical));
+
+    // Normalizes diagonal movement to keep the same speed in every direction
+    if (movement.x != 0.0f || movement.y != 0.0f)
     {
-    case Axis2D::Move:
-    {
-        Vec2 movement(
-            GetAxis(Axis::MoveX),
-            0.0f);
-
-        // Vertical movement axis using screen-space coordinates
-        if (IsKeyPressed(Key::S))
-        {
-            movement.y += 1.0f;
-        }
-
-        if (IsKeyPressed(Key::W))
-        {
-            movement.y -= 1.0f;
-        }
-
-        // Normalizes diagonal movement to keep the same speed in every direction
-        if (movement.x != 0.0f || movement.y != 0.0f)
-        {
-            movement = glm::normalize(movement);
-        }
-
-        return movement;
-    }
+        movement = glm::normalize(movement);
     }
 
-    // Returns neutral value if axis is unknown
-    return Vec2(0.0f, 0.0f);
+    return movement;
 }

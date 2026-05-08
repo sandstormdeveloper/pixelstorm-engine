@@ -39,12 +39,8 @@ enum class Key
 
 enum class Axis
 {
-    MoveX
-};
-
-enum class Axis2D
-{
-    Move
+    Horizontal,
+    Vertical
 };
 
 class Input
@@ -54,7 +50,7 @@ public:
     static bool IsKeyPressed(Key key);         // Detects if a certain key is pressed
     static bool IsKeyPressed(int key);         // Legacy GLFW-compatible overload
     static float GetAxis(Axis axis);           // Returns a 1D input axis
-    static Vec2 GetAxis2D(Axis2D axis);        // Returns a 2D input axis
+    static Vec2 GetAxis2D();                   // Returns the 2D movement axis
 
 private:
     static GLFWwindow *s_Window; // Window used by GLFW

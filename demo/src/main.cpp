@@ -29,8 +29,8 @@ int main()
         // Player speed
         const float speed = 120.0f;
 
-        // Gets movement from named input axis
-        const Vec2 movement = Input::GetAxis2D(Axis2D::Move);
+        // Gets movement from the 2D input axis
+        const Vec2 movement = Input::GetAxis2D();
 
         // Moves player in pixel coordinates
         player.Transform().Translate(movement * speed * deltaTime);
