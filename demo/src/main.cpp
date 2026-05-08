@@ -76,20 +76,27 @@ int main()
         true
     );
 
+    // Update loop
     app.SetUpdate([&](float deltaTime) {
+        // Player transform
         Transform& transform = registry.GetComponent<Transform>(player);
 
+        // Player speed
         const float speed = 120.0f;
 
+        // Right
         if (Input::IsKeyPressed(GLFW_KEY_D))
             transform.Position.x += speed * deltaTime;
 
+        // Left
         if (Input::IsKeyPressed(GLFW_KEY_A))
             transform.Position.x -= speed * deltaTime;
 
+        // Up
         if (Input::IsKeyPressed(GLFW_KEY_W))
             transform.Position.y -= speed * deltaTime;
 
+        // Down
         if (Input::IsKeyPressed(GLFW_KEY_S))
             transform.Position.y += speed * deltaTime; 
     });
