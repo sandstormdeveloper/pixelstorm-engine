@@ -39,43 +39,60 @@ bool Input::IsKeyPressed(int key)
     return glfwGetKey(s_Window, key) == GLFW_PRESS;
 }
 
-float Input::GetAxis(Axis axis)
+float Input::GetAxis(Axis axis, AxisMapping mapping)
 {
+    Key positiveKey = Key::Right;
+    Key negativeKey = Key::Left;
+
+    // Chooses input mapping for the requested axis
+    switch (mapping)
+    {
+    case AxisMapping::Arrows:
+        if (axis == Axis::Horizontal)
+        {
+            positiveKey = Key::Right;
+            negativeKey = Key::Left;
+        }
+        else
+        {
+            positiveKey = Key::Down;
+            negativeKey = Key::Up;
+        }
+        break;
+    case AxisMapping::WASD:
+        if (axis == Axis::Horizontal)
+        {
+            positiveKey = Key::D;
+            negativeKey = Key::A;
+        }
+        else
+        {
+            positiveKey = Key::S;
+            negativeKey = Key::W;
+        }
+        break;
+    }
+
     // Movement axes mapped to keyboard input
     switch (axis)
     {
     case Axis::Horizontal:
-    {
-        float axis = 0.0f;
-
-        if (IsKeyPressed(Key::D))
-        {
-            axis += 1.0f;
-        }
-
-        if (IsKeyPressed(Key::A))
-        {
-            axis -= 1.0f;
-        }
-
-        return axis;
-    }
     case Axis::Vertical:
     {
-        float axis = 0.0f;
+        float axisValue = 0.0f;
 
         // Screen-space coordinates: positive Y goes down
-        if (IsKeyPressed(Key::S))
+        if (IsKeyPressed(positiveKey))
         {
-            axis += 1.0f;
+            axisValue += 1.0f;
         }
 
-        if (IsKeyPressed(Key::W))
+        if (IsKeyPressed(negativeKey))
         {
-            axis -= 1.0f;
+            axisValue -= 1.0f;
         }
 
-        return axis;
+        return axisValue;
     }
     }
 
@@ -83,12 +100,12 @@ float Input::GetAxis(Axis axis)
     return 0.0f;
 }
 
-Vec2 Input::GetAxis2D()
+Vec2 Input::GetAxis2D(AxisMapping mapping)
 {
     // Returns 2D movement vector
     Vec2 movement(
-        GetAxis(Axis::Horizontal),
-        GetAxis(Axis::Vertical));
+        GetAxis(Axis::Horizontal, mapping),
+        GetAxis(Axis::Vertical, mapping));
 
     // Normalizes diagonal movement to keep the same speed in every direction
     if (movement.x != 0.0f || movement.y != 0.0f)

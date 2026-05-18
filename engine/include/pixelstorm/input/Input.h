@@ -34,7 +34,11 @@ enum class Key
     X = 88,
     Y = 89,
     Z = 90,
-    Escape = 256
+    Escape = 256,
+    Right = 262,
+    Left = 263,
+    Down = 264,
+    Up = 265
 };
 
 enum class Axis
@@ -43,14 +47,20 @@ enum class Axis
     Vertical
 };
 
+enum class AxisMapping
+{
+    Arrows,
+    WASD
+};
+
 class Input
 {
 public:
-    static void SetWindow(GLFWwindow *window); // Sets window used by GLFW
-    static bool IsKeyPressed(Key key);         // Detects if a certain key is pressed
-    static bool IsKeyPressed(int key);         // Legacy GLFW-compatible overload
-    static float GetAxis(Axis axis);           // Returns a 1D input axis
-    static Vec2 GetAxis2D();                   // Returns the 2D movement axis
+    static void SetWindow(GLFWwindow *window);                                  // Sets window used by GLFW
+    static bool IsKeyPressed(Key key);                                          // Detects if a certain key is pressed
+    static bool IsKeyPressed(int key);                                          // Legacy GLFW-compatible overload
+    static float GetAxis(Axis axis, AxisMapping mapping = AxisMapping::Arrows); // Returns a 1D input axis using the selected key mapping
+    static Vec2 GetAxis2D(AxisMapping mapping = AxisMapping::Arrows);           // Returns the 2D movement axis using the selected key mapping
 
 private:
     static GLFWwindow *s_Window; // Window used by GLFW
