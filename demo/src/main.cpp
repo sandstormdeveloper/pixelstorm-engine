@@ -24,16 +24,30 @@ int main()
         Colors::Blue()
     );
 
+    // Adds a custom named action on top of the built-in defaults
+    Input::AddActionBinding("paint", Key::Space);
+
     // Update loop
     app.OnUpdate([&](float deltaTime) {
         // Player speed
         const float speed = 120.0f;
 
-        // Gets movement from the 2D input axis
-        const Vec2 movement = Input::GetAxis2D();
+        // Gets movement from the built-in combined 2D axis
+        const Vec2 movement = Input::GetAxis2D("move");
 
         // Moves player in pixel coordinates
         player.Transform().Translate(movement * speed * deltaTime);
+
+        // Uses a named action to trigger a one-frame color change
+        if (Input::IsActionJustPressed("paint"))
+        {
+            player.Sprite().SetColor(Colors::Green());
+        }
+
+        if (Input::IsActionJustReleased("paint"))
+        {
+            player.Sprite().SetColor(Colors::Red());
+        }
     });
 
     // Runs application
