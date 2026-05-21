@@ -24,9 +24,6 @@ int main()
         Colors::Blue()
     );
 
-    // Adds a custom named action on top of the built-in defaults
-    Input::AddActionBinding("paint", Key::Space);
-
     // Update loop
     app.OnUpdate([&](float deltaTime) {
         // Player speed
@@ -38,13 +35,31 @@ int main()
         // Moves player in pixel coordinates
         player.Transform().Translate(movement * speed * deltaTime);
 
-        // Uses a named action to trigger a one-frame color change
-        if (Input::IsActionJustPressed("paint"))
+        // Uses a built-in gameplay action to trigger a one-frame color change
+        if (Input::IsActionJustPressed("jump"))
         {
             player.Sprite().SetColor(Colors::Green());
         }
 
-        if (Input::IsActionJustReleased("paint"))
+        if (Input::IsActionJustReleased("jump"))
+        {
+            player.Sprite().SetColor(Colors::Red());
+        }
+
+        // Moves player to the cursor when left mouse button is pressed
+        if (Input::IsMouseButtonJustPressed(MouseButton::Left))
+        {
+            player.Transform().SetPosition(Input::GetMousePosition());
+        }
+
+        // Tints player blue while right mouse button is held
+        if (Input::IsMouseButtonDown(MouseButton::Right))
+        {
+            player.Sprite().SetColor(Colors::Blue());
+        }
+
+        // Restores default color when right mouse button is released
+        if (Input::IsMouseButtonJustReleased(MouseButton::Right))
         {
             player.Sprite().SetColor(Colors::Red());
         }
