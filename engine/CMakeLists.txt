@@ -16,6 +16,7 @@ target_compile_definitions(pixelstorm_engine PUBLIC GLFW_INCLUDE_NONE)
 
 target_include_directories(pixelstorm_engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/external
     ${PROJECT_SOURCE_DIR}/external/glad/include
     ${PROJECT_SOURCE_DIR}/external/glfw/include
     ${PROJECT_SOURCE_DIR}/external/glm
