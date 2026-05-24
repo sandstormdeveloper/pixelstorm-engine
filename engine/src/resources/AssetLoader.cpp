@@ -3,5 +3,6 @@
 
 std::unique_ptr<Texture> AssetLoader::LoadTexture(const std::string &path) 
 {
+    // Loads texture from file path
     return std::make_unique<Texture>(path);
 }
