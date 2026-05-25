@@ -1,6 +1,7 @@
 #pragma once
 
 class Registry;
+class ResourceManager;
 class Renderer;
 class Shader;
 class Texture;
@@ -8,5 +9,5 @@ class Texture;
 class RenderSystem
 {
 public:
-    void Render(Registry &registry, Renderer &renderer, Shader &shader, Texture *fallbackTexture = nullptr); // Renders entities
+    void Render(Registry &registry, ResourceManager &resourceManager, Renderer &renderer, Shader &shader, Texture *fallbackTexture = nullptr); // Renders entities
 };

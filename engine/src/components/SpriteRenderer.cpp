@@ -1,21 +1,21 @@
 #include "pixelstorm/components/SpriteRenderer.h"
 
 SpriteRenderer::SpriteRenderer()
-    : TextureResource(nullptr),
+    : TextureName(),
       Color(1.0f, 1.0f, 1.0f, 1.0f),
       Visible(true)
 {
 }
 
 SpriteRenderer::SpriteRenderer(const glm::vec4 &color, bool visible)
-    : TextureResource(nullptr),
+    : TextureName(),
       Color(color),
       Visible(visible)
 {
 }
 
-SpriteRenderer::SpriteRenderer(Texture *texture, const glm::vec4 &color, bool visible)
-    : TextureResource(texture),
+SpriteRenderer::SpriteRenderer(const std::string &textureName, const glm::vec4 &color, bool visible)
+    : TextureName(textureName),
       Color(color),
       Visible(visible)
 {

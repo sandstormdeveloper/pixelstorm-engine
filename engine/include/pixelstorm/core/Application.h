@@ -10,6 +10,7 @@
 class Camera2D;
 class Renderer;
 class RenderSystem;
+class ResourceManager;
 class Shader;
 class Texture;
 class Window;
@@ -20,8 +21,9 @@ public:
     Application(int width, int height, const char *title);
     ~Application();
 
-    void Run();                                     // Game loop
-    void SetDefaultShader(const std::string &name); // Sets default shader used
+    void Run();                                                              // Game loop
+    void SetDefaultShader(const std::string &name);                          // Sets default shader used
+    bool LoadTexture(const std::string &name, const std::string &assetPath); // Loads texture from runtime assets path
 
     void OnUpdate(const std::function<void(float)> &callback); // Passes update function to application
 
@@ -34,13 +36,14 @@ private:
 
     Shader *GetActiveShader() const; // Returns active shader
 
-    std::unique_ptr<Window> m_Window;             // Main window
-    std::unique_ptr<Renderer> m_Renderer;         // Basic 2D renderer
-    std::unique_ptr<Camera2D> m_Camera;           // Main 2D camera
-    std::unique_ptr<Shader> m_DefaultShader;      // Base shader
-    std::unique_ptr<Shader> m_EntityShader;       // Shader for objects
-    std::unique_ptr<Texture> m_Texture;           // First procedural texture
-    std::unique_ptr<RenderSystem> m_RenderSystem; // Render system
+    std::unique_ptr<Window> m_Window;                   // Main window
+    std::unique_ptr<Renderer> m_Renderer;               // Basic 2D renderer
+    std::unique_ptr<Camera2D> m_Camera;                 // Main 2D camera
+    std::unique_ptr<Shader> m_DefaultShader;            // Base shader
+    std::unique_ptr<Shader> m_EntityShader;             // Shader for objects
+    std::unique_ptr<Texture> m_Texture;                 // Fallback procedural texture
+    std::unique_ptr<ResourceManager> m_ResourceManager; // Loaded resources
+    std::unique_ptr<RenderSystem> m_RenderSystem;       // Render system
 
     Registry m_Registry; // Entity registry
     World m_World;       // Public game world handle

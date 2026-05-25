@@ -5,6 +5,10 @@ int main()
     // Creates window
     Application app(640, 360, "Demo");
 
+    // Loads demo sprites from runtime assets
+    app.LoadTexture("player", "assets/player.png");
+    app.LoadTexture("wall", "assets/wall.png");
+
     // Gets world handle
     World world = app.GetWorld();
 
@@ -13,16 +17,18 @@ int main()
         "Player",
         Vec2(160.0f, 180.0f),
         Vec2(32.0f, 32.0f),
-        Colors::Red()
+        Colors::White()
     );
+    player.Sprite().SetTexture("player");
 
     // Creates wall entity with common static box components
     Entity wall = world.CreateStaticBox(
         "Wall",
         Vec2(240.0f, 180.0f),
         Vec2(32.0f, 32.0f),
-        Colors::Blue()
+        Colors::White()
     );
+    wall.Sprite().SetTexture("wall");
 
     // Update loop
     app.OnUpdate([&](float deltaTime) {
@@ -43,7 +49,7 @@ int main()
 
         if (Input::IsActionJustReleased("jump"))
         {
-            player.Sprite().SetColor(Colors::Red());
+            player.Sprite().SetColor(Colors::White());
         }
 
         // Moves player to the cursor when left mouse button is pressed
@@ -61,7 +67,7 @@ int main()
         // Restores default color when right mouse button is released
         if (Input::IsMouseButtonJustReleased(MouseButton::Right))
         {
-            player.Sprite().SetColor(Colors::Red());
+            player.Sprite().SetColor(Colors::White());
         }
     });
 

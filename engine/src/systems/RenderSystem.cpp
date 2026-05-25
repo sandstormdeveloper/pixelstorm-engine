@@ -5,8 +5,9 @@
 #include "pixelstorm/renderer/Renderer.h"
 #include "pixelstorm/renderer/Shader.h"
 #include "pixelstorm/renderer/Texture.h"
+#include "pixelstorm/resources/ResourceManager.h"
 
-void RenderSystem::Render(Registry &registry, Renderer &renderer, Shader &shader, Texture *fallbackTexture)
+void RenderSystem::Render(Registry &registry, ResourceManager &resourceManager, Renderer &renderer, Shader &shader, Texture *fallbackTexture)
 {
     // Loops through entities in registry with a transform and sprite renderer
     for (Entity entity : registry.GetEntitiesWith<Transform, SpriteRenderer>())
@@ -15,8 +16,15 @@ void RenderSystem::Render(Registry &registry, Renderer &renderer, Shader &shader
         Transform &transform = registry.GetComponent<Transform>(entity);
         SpriteRenderer &sprite = registry.GetComponent<SpriteRenderer>(entity);
 
-        // Uses default texture if no texture is loaded
-        Texture *texture = sprite.TextureResource ? sprite.TextureResource : fallbackTexture;
+        // Resolves the named texture and falls back to the default texture if needed
+        Texture *texture = fallbackTexture;
+        if (!sprite.TextureName.empty())
+        {
+            if (Texture *loadedTexture = resourceManager.GetTexture(sprite.TextureName))
+            {
+                texture = loadedTexture;
+            }
+        }
 
         // Draws entity if valid
         if (sprite.Visible && texture)

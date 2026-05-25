@@ -6,6 +6,7 @@
 #include "pixelstorm/renderer/Renderer.h"
 #include "pixelstorm/renderer/Shader.h"
 #include "pixelstorm/renderer/Texture.h"
+#include "pixelstorm/resources/ResourceManager.h"
 #include "pixelstorm/systems/RenderSystem.h"
 #include <pixelstorm/input/Input.h>
 
@@ -30,6 +31,29 @@ void Application::SetDefaultShader(const std::string &name)
 {
     // Sets the base/default shader
     m_DefaultShader = std::make_unique<Shader>(name);
+}
+
+bool Application::LoadTexture(const std::string &name, const std::string &assetPath)
+{
+    // Rejects invalid resource manager state
+    if (!m_ResourceManager)
+    {
+        Log::Error("Cannot load texture without a valid resource manager.");
+        return false;
+    }
+
+    // Loads texture by logical name
+    const bool loaded = m_ResourceManager->LoadTexture(name, assetPath);
+    if (loaded)
+    {
+        Log::Info("Texture registered: " + name + " <- " + assetPath);
+    }
+    else
+    {
+        Log::Warning("Texture could not be loaded: " + name + " <- " + assetPath);
+    }
+
+    return loaded;
 }
 
 void Application::Run()
@@ -73,7 +97,7 @@ void Application::Run()
             // Renders
             if (m_Renderer)
             {
-                m_RenderSystem->Render(m_Registry, *m_Renderer, *shaderToUse, m_Texture.get());
+                m_RenderSystem->Render(m_Registry, *m_ResourceManager, *m_Renderer, *shaderToUse, m_Texture.get());
             }
         }
 
@@ -120,6 +144,7 @@ void Application::Init(int width, int height, const char *title)
 
     // Creates texture
     m_Texture = std::make_unique<Texture>();
+    m_ResourceManager = std::make_unique<ResourceManager>();
 
     // Sets default shaders (can be overwritten)
     m_DefaultShader = std::make_unique<Shader>("default");
@@ -136,6 +161,7 @@ void Application::Shutdown()
     Log::Info("Application shutdown.");
 
     // Destroys objects
+    m_ResourceManager.reset();
     m_Texture.reset();
     m_RenderSystem.reset();
     m_Camera.reset();
