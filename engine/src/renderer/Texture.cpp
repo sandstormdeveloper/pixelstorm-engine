@@ -55,7 +55,7 @@ Texture::Texture(const std::string &path)
     glGenTextures(1, &m_ID);
 
     // Loads image pixels from file
-    stbi_set_flip_vertically_on_load(1);
+    stbi_set_flip_vertically_on_load(0);
 
     int width = 0;
     int height = 0;
