@@ -22,6 +22,12 @@ void Log::Shutdown()
     s_Initialized = false;
 }
 
+void Log::Debug(const std::string &message)
+{
+    // Debug message
+    Write("DEBUG", message, false);
+}
+
 void Log::Info(const std::string &message)
 {
     // Informative message
