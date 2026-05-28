@@ -8,6 +8,10 @@ Renderer::Renderer()
       m_VBO(0),
       m_EBO(0)
 {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendEquation(GL_FUNC_ADD);
+
     // Quad vertices with UVs
     const float vertices[] = {
         -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
