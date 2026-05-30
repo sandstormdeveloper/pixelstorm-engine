@@ -52,6 +52,7 @@ public:
 
     void SetEntityName(Entity entity, const std::string &name); // Stores a debug/game-facing entity name
     std::string GetEntityName(Entity entity) const;             // Returns entity name, if any
+    void Clear();                                               // Removes all entities and components
 
 private:
     template <typename T>

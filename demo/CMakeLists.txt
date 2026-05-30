@@ -1,5 +1,10 @@
+file(GLOB_RECURSE DEMO_SCENE_SOURCES CONFIGURE_DEPENDS
+    ${CMAKE_CURRENT_SOURCE_DIR}/scenes/*.cpp
+)
+
 add_executable(pixelstorm_demo
     src/main.cpp
+    ${DEMO_SCENE_SOURCES}
 )
 
 target_link_libraries(pixelstorm_demo PRIVATE pixelstorm_engine)

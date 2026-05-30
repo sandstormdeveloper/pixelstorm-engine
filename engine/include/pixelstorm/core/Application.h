@@ -2,6 +2,7 @@
 
 #include "pixelstorm/ecs/Registry.h"
 #include "pixelstorm/ecs/World.h"
+#include "pixelstorm/scene/SceneManager.h"
 
 #include <functional>
 #include <memory>
@@ -14,6 +15,7 @@ class ResourceManager;
 class Shader;
 class Texture;
 class Window;
+class SceneManager;
 
 class Application
 {
@@ -29,6 +31,9 @@ public:
 
     World &GetWorld();             // Returns game world handle
     const World &GetWorld() const; // Returns read-only game world handle
+
+    SceneManager &GetScenes();             // Returns created scenes
+    const SceneManager &GetScenes() const; // Returns read-only created scenes
 
 private:
     void Init(int width, int height, const char *title); // Initializes application
@@ -47,6 +52,8 @@ private:
 
     Registry m_Registry; // Entity registry
     World m_World;       // Public game world handle
+
+    SceneManager m_SceneManager; // Scene Manager
 
     std::function<void(float)> m_UpdateCallback; // Update callback
 };

@@ -15,7 +15,8 @@
 #include <memory>
 
 Application::Application(int width, int height, const char *title)
-    : m_World(m_Registry)
+    : m_World(m_Registry),
+      m_SceneManager(m_World)
 {
     // Initializes the application
     Init(width, height, title);
@@ -73,6 +74,8 @@ void Application::Run()
             m_UpdateCallback(Time::GetDeltaTime());
         }
 
+        m_SceneManager.Update(Time::GetDeltaTime());
+
         // Clears screen with background color
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -93,6 +96,8 @@ void Application::Run()
             {
                 shaderToUse->SetMat4("u_ViewProjection", m_Camera->GetViewProjectionMatrix());
             }
+
+            m_SceneManager.Render();
 
             // Renders
             if (m_Renderer)
@@ -197,4 +202,16 @@ const World &Application::GetWorld() const
 {
     // Returns persistent world handle in read-only mode
     return m_World;
+}
+
+SceneManager& Application::GetScenes()
+{
+    // Returns scene manager
+    return m_SceneManager;
+}
+
+const SceneManager& Application::GetScenes() const
+{
+    // Returns scene manager
+    return m_SceneManager;
 }

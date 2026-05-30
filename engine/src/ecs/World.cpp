@@ -67,6 +67,12 @@ Entity World::CreateActor(const std::string &name, const glm::vec2 &position, co
     return entity;
 }
 
+void World::Clear()
+{
+    // Clears all entities and components from the registry
+    RequireRegistry().Clear();
+}
+
 bool World::IsValid() const
 {
     // Returns if world has a valid registry

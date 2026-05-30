@@ -12,3 +12,5 @@
 #include "pixelstorm/ecs/Entity.h"
 #include "pixelstorm/ecs/World.h"
 #include "pixelstorm/input/Input.h"
+#include "pixelstorm/scene/Scene.h"
+#include "pixelstorm/scene/SceneManager.h"

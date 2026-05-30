@@ -47,3 +47,13 @@ std::string Registry::GetEntityName(Entity entity) const
 
     return iterator->second;
 }
+
+void Registry::Clear()
+{
+    // Clears all scene-owned ECS state
+    m_NextEntityId = 1;
+    m_Entities.clear();
+    m_EntityNames.clear();
+    m_ComponentPools.clear();
+    Log::Info("Registry cleared.");
+}
