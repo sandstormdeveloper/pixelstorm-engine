@@ -1,10 +1,10 @@
 #include "GameScene.h"
 
-void GameScene::OnEnter(SceneContext& context)
+void GameScene::OnEnter()
 {
-    World& world = *context.GameWorld;
+    Log::Debug("Entering GameScene");
 
-    m_Player = world.CreateActor(
+    m_Player = GetWorld().CreateActor(
         "Player",
         Vec2(160.0f, 180.0f),
         Vec2(32.0f, 32.0f),
@@ -13,7 +13,7 @@ void GameScene::OnEnter(SceneContext& context)
 
     m_Player.Sprite().SetTexture("player");
 
-    m_Wall = world.CreateStaticBox(
+    m_Wall = GetWorld().CreateStaticBox(
         "Wall",
         Vec2(240.0f, 180.0f),
         Vec2(32.0f, 32.0f),
@@ -23,7 +23,7 @@ void GameScene::OnEnter(SceneContext& context)
     m_Wall.Sprite().SetTexture("wall");
 }
 
-void GameScene::OnUpdate(SceneContext& context, float deltaTime)
+void GameScene::OnUpdate(float deltaTime)
 {
     const float speed = 120.0f;
     const Vec2 movement = Input::GetAxis2D("move");
@@ -57,10 +57,11 @@ void GameScene::OnUpdate(SceneContext& context, float deltaTime)
 
     if (Input::IsActionJustPressed("interact"))
     {
-        context.Scenes->ChangeScene("second");
+        ChangeScene("second");
     }
 }
 
-void GameScene::OnExit(SceneContext& context)
+void GameScene::OnExit()
 {
+    Log::Debug("Leaving GameScene");
 }

@@ -25,7 +25,7 @@ public:
     const std::string &GetActiveSceneName() const;                        // Returns active scene name
 
 private:
-    SceneContext CreateContext(); // Builds context passed to scenes
+    void BindScene(Scene &scene); // Connects a scene to the engine context
 
     World *m_World;                                                   // World used by scenes
     std::unordered_map<std::string, std::unique_ptr<Scene>> m_Scenes; // Registered scenes

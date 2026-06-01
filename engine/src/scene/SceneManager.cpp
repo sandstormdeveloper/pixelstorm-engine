@@ -18,6 +18,11 @@ void SceneManager::SetWorld(World &world)
 {
     // Assigns world for scenes
     m_World = &world;
+
+    for (std::pair<const std::string, std::unique_ptr<Scene>> &sceneEntry : m_Scenes)
+    {
+        BindScene(*sceneEntry.second);
+    }
 }
 
 bool SceneManager::AddScene(const std::string &name, std::unique_ptr<Scene> scene)
@@ -31,6 +36,11 @@ bool SceneManager::AddScene(const std::string &name, std::unique_ptr<Scene> scen
     // Adds scene
     const std::pair<std::unordered_map<std::string, std::unique_ptr<Scene>>::iterator, bool> result =
         m_Scenes.emplace(name, std::move(scene));
+
+    if (result.second && m_World)
+    {
+        BindScene(*result.first->second);
+    }
 
     return result.second;
 }
@@ -59,13 +69,10 @@ bool SceneManager::ChangeScene(const std::string &name)
         return true;
     }
 
-    // Creates context
-    SceneContext context = CreateContext();
-
     // Calls OnExit for active scene
     if (m_ActiveScene)
     {
-        m_ActiveScene->OnExit(context);
+        m_ActiveScene->OnExit();
     }
 
     // Removes entities from the previous scene before the new scene creates its content
@@ -74,9 +81,10 @@ bool SceneManager::ChangeScene(const std::string &name)
     // Activates scene
     m_ActiveSceneName = name;
     m_ActiveScene = nextScene;
+    BindScene(*m_ActiveScene);
 
     // Call OnEnter for new scene
-    m_ActiveScene->OnEnter(context);
+    m_ActiveScene->OnEnter();
     return true;
 }
 
@@ -89,8 +97,7 @@ void SceneManager::Update(float deltaTime)
     }
 
     // Calls Update for current scene
-    SceneContext context = CreateContext();
-    m_ActiveScene->OnUpdate(context, deltaTime);
+    m_ActiveScene->OnUpdate(deltaTime);
 }
 
 void SceneManager::Render()
@@ -102,8 +109,7 @@ void SceneManager::Render()
     }
 
     // Calls Render for current scene
-    SceneContext context = CreateContext();
-    m_ActiveScene->OnRender(context);
+    m_ActiveScene->OnRender();
 }
 
 Scene *SceneManager::GetActiveScene()
@@ -124,8 +130,8 @@ const std::string &SceneManager::GetActiveSceneName() const
     return m_ActiveSceneName;
 }
 
-SceneContext SceneManager::CreateContext()
+void SceneManager::BindScene(Scene &scene)
 {
-    // Passes world and scene manager for context
-    return {m_World, this};
+    // Connects the scene to the current world and scene manager
+    scene.SetContext(*m_World, *this);
 }

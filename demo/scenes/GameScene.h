@@ -5,9 +5,9 @@
 class GameScene : public Scene
 {
 public:
-    void OnEnter(SceneContext& context) override;
-    void OnUpdate(SceneContext& context, float deltaTime) override;
-    void OnExit(SceneContext& context) override;
+    void OnEnter() override;
+    void OnUpdate(float deltaTime) override;
+    void OnExit() override;
 
 private:
     Entity m_Player;

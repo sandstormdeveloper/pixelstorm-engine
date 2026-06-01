@@ -1,10 +1,10 @@
 #include "SecondScene.h"
 
-void SecondScene::OnEnter(SceneContext& context)
+void SecondScene::OnEnter()
 {
-    World& world = *context.GameWorld;
-
-    m_Box = world.CreateStaticBox(
+    Log::Debug("Entering SecondScene");
+    
+    m_Box = GetWorld().CreateStaticBox(
         "Second Scene Box",
         Vec2(320.0f, 180.0f),
         Vec2(64.0f, 64.0f),
@@ -14,10 +14,15 @@ void SecondScene::OnEnter(SceneContext& context)
     m_Box.Sprite().SetTexture("wall");
 }
 
-void SecondScene::OnUpdate(SceneContext& context, float deltaTime)
+void SecondScene::OnUpdate(float deltaTime)
 {
     if (Input::IsActionJustPressed("cancel") || Input::IsActionJustPressed("interact"))
     {
-        context.Scenes->ChangeScene("game");
+        ChangeScene("game");
     }
+}
+
+void SecondScene::OnExit()
+{
+    Log::Debug("Leaving SecondScene");
 }
