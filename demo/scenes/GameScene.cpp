@@ -12,6 +12,7 @@ void GameScene::OnEnter()
     );
 
     m_Player.Sprite().SetTexture("player");
+    m_Player.Rigidbody().SetUseGravity(true);
 
     m_Wall = GetWorld().CreateStaticBox(
         "Wall",
@@ -21,6 +22,15 @@ void GameScene::OnEnter()
     );
 
     m_Wall.Sprite().SetTexture("wall");
+
+    m_Crate = GetWorld().CreateActor(
+        "Crate",
+        Vec2(320.0f, 180.0f),
+        Vec2(32.0f, 32.0f),
+        Colors::White()
+    );
+
+    m_Crate.Sprite().SetTexture("wall");
 }
 
 void GameScene::OnUpdate(float deltaTime)
@@ -28,7 +38,7 @@ void GameScene::OnUpdate(float deltaTime)
     const float speed = 120.0f;
     const Vec2 movement = Input::GetAxis2D("move");
 
-    m_Player.Transform().Translate(movement * speed * deltaTime);
+    m_Player.Rigidbody().SetVelocity(movement * speed);
 
     if (Input::IsActionJustPressed("jump"))
     {
@@ -43,6 +53,7 @@ void GameScene::OnUpdate(float deltaTime)
     if (Input::IsMouseButtonJustPressed(MouseButton::Left))
     {
         m_Player.Transform().SetPosition(Input::GetMousePosition());
+        m_Player.Rigidbody().SetVelocity(Vec2(0.0f));
     }
 
     if (Input::IsMouseButtonDown(MouseButton::Right))

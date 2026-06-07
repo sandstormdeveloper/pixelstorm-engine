@@ -7,6 +7,7 @@
 #include "pixelstorm/renderer/Shader.h"
 #include "pixelstorm/renderer/Texture.h"
 #include "pixelstorm/resources/ResourceManager.h"
+#include "pixelstorm/systems/PhysicsSystem.h"
 #include "pixelstorm/systems/RenderSystem.h"
 #include <pixelstorm/input/Input.h>
 
@@ -57,6 +58,26 @@ bool Application::LoadTexture(const std::string &name, const std::string &assetP
     return loaded;
 }
 
+void Application::SetGravity(const Vec2 &gravity)
+{
+    // Updates physics gravity if physics system exists
+    if (m_PhysicsSystem)
+    {
+        m_PhysicsSystem->SetGravity(gravity);
+    }
+}
+
+Vec2 Application::GetGravity() const
+{
+    // Returns physics gravity if physics system exists
+    if (m_PhysicsSystem)
+    {
+        return m_PhysicsSystem->GetGravity();
+    }
+
+    return Vec2(0.0f, 0.0f);
+}
+
 void Application::Run()
 {
     // Run message
@@ -75,6 +96,12 @@ void Application::Run()
         }
 
         m_SceneManager.Update(Time::GetDeltaTime());
+
+        // Updates physics after gameplay changes velocities
+        if (m_PhysicsSystem)
+        {
+            m_PhysicsSystem->Update(m_Registry, Time::GetDeltaTime());
+        }
 
         // Clears screen with background color
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -136,8 +163,9 @@ void Application::Init(int width, int height, const char *title)
 
     // Creates renderer
     m_Renderer = std::make_unique<Renderer>();
+    m_PhysicsSystem = std::make_unique<PhysicsSystem>();
     m_RenderSystem = std::make_unique<RenderSystem>();
-    Log::Info("Renderer and render system created.");
+    Log::Info("Renderer, physics system and render system created.");
 
     // Creates camera
     m_Camera = std::make_unique<Camera2D>(
@@ -169,6 +197,7 @@ void Application::Shutdown()
     m_ResourceManager.reset();
     m_Texture.reset();
     m_RenderSystem.reset();
+    m_PhysicsSystem.reset();
     m_Camera.reset();
     m_Renderer.reset();
     m_EntityShader.reset();

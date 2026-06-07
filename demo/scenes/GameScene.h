@@ -12,4 +12,5 @@ public:
 private:
     Entity m_Player;
     Entity m_Wall;
+    Entity m_Crate;
 };
