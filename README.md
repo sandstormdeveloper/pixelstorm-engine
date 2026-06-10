@@ -15,4 +15,3 @@ This project was built with the following tools:
   - **GLFW**: Window and input.
   - **CMake**: Build.
   - **GLM**: Math.
-  - **ImGui**: UI.
