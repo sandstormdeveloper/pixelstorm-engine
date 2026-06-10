@@ -56,7 +56,7 @@ void GameScene::OnEnter()
     });
 
     m_TriggerZone.Trigger().SetOnExit([this](Entity other) {
-        if (other.GetId() != m_Player.GetId())
+        if (other.GetId() == m_Player.GetId())
         {
             Log::Debug("Player exited the GameScene trigger zone.");
             m_Player.Sprite().SetColor(Colors::White());
