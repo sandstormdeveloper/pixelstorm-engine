@@ -50,7 +50,7 @@ Entity World::CreateStaticBox(const std::string &name, const glm::vec2 &position
 
     // Adds collision and static rigidbody
     entity.AddComponent<Collider>(size, glm::vec2(0.0f, 0.0f), isTrigger);
-    entity.AddComponent<Rigidbody>(glm::vec2(0.0f, 0.0f), 1.0f, true);
+    entity.AddComponent<Rigidbody>(glm::vec2(0.0f, 0.0f), true);
 
     return entity;
 }
@@ -62,7 +62,7 @@ Entity World::CreateActor(const std::string &name, const glm::vec2 &position, co
 
     // Adds collision and dynamic rigidbody
     entity.AddComponent<Collider>(size);
-    entity.AddComponent<Rigidbody>(glm::vec2(0.0f, 0.0f), 1.0f, false);
+    entity.AddComponent<Rigidbody>(glm::vec2(0.0f, 0.0f), false);
 
     return entity;
 }

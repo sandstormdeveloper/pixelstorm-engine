@@ -1,6 +1,7 @@
 #include "pixelstorm/scene/Scene.h"
 
 #include "pixelstorm/scene/SceneManager.h"
+#include "pixelstorm/systems/PhysicsSystem.h"
 
 #include <stdexcept>
 
@@ -44,13 +45,37 @@ const SceneManager &Scene::GetScenes() const
     return *m_Scenes;
 }
 
+PhysicsSystem &Scene::GetPhysicsSystem()
+{
+    // Scenes can only access physics after SceneManager binds the context
+    if (!m_PhysicsSystem)
+    {
+        throw std::runtime_error("Scene is not connected to a PhysicsSystem.");
+    }
+
+    return *m_PhysicsSystem;
+}
+
+const PhysicsSystem &Scene::GetPhysicsSystem() const
+{
+    // Scenes can only access physics after SceneManager binds the context
+    if (!m_PhysicsSystem)
+    {
+        throw std::runtime_error("Scene is not connected to a PhysicsSystem.");
+    }
+
+    return *m_PhysicsSystem;
+}
+
 bool Scene::ChangeScene(const std::string &sceneName)
 {
     return GetScenes().ChangeScene(sceneName);
 }
 
-void Scene::SetContext(World &world, SceneManager &scenes)
+void Scene::SetContext(World &world, SceneManager &scenes, PhysicsSystem *physicsSystem)
 {
+    // Stores the engine services that the scene can use during callbacks
     m_World = &world;
     m_Scenes = &scenes;
+    m_PhysicsSystem = physicsSystem;
 }

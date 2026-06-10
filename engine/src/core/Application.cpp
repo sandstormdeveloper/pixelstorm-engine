@@ -165,6 +165,7 @@ void Application::Init(int width, int height, const char *title)
     m_Renderer = std::make_unique<Renderer>();
     m_PhysicsSystem = std::make_unique<PhysicsSystem>();
     m_RenderSystem = std::make_unique<RenderSystem>();
+    m_SceneManager.SetPhysicsSystem(*m_PhysicsSystem);
     Log::Info("Renderer, physics system and render system created.");
 
     // Creates camera

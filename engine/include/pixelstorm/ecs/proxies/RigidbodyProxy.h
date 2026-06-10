@@ -29,18 +29,6 @@ public:
         m_Rigidbody.Velocity += delta;
     }
 
-    float GetMass() const
-    {
-        // Returns rigidbody mass
-        return m_Rigidbody.Mass;
-    }
-
-    void SetMass(float mass)
-    {
-        // Updates rigidbody mass
-        m_Rigidbody.Mass = mass;
-    }
-
     bool IsStatic() const
     {
         // Returns static state

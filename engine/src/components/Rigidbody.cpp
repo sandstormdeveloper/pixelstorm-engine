@@ -2,16 +2,14 @@
 
 Rigidbody::Rigidbody()
     : Velocity(0.0f, 0.0f),
-      Mass(1.0f),
       IsStatic(false),
       UseGravity(false),
-      GravityScale(1.0f)
+      GravityScale(25.0f)
 {
 }
 
-Rigidbody::Rigidbody(const glm::vec2 &velocity, float mass, bool isStatic, bool useGravity, float gravityScale)
+Rigidbody::Rigidbody(const glm::vec2 &velocity, bool isStatic, bool useGravity, float gravityScale)
     : Velocity(velocity),
-      Mass(mass),
       IsStatic(isStatic),
       UseGravity(useGravity),
       GravityScale(gravityScale)

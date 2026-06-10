@@ -8,6 +8,7 @@
 #include "pixelstorm/ecs/proxies/ColliderProxy.h"
 #include "pixelstorm/ecs/proxies/RigidbodyProxy.h"
 #include "pixelstorm/ecs/proxies/SpriteProxy.h"
+#include "pixelstorm/ecs/proxies/TriggerProxy.h"
 #include "pixelstorm/ecs/proxies/TransformProxy.h"
 
 Entity::Entity()
@@ -56,4 +57,10 @@ RigidbodyProxy Entity::Rigidbody()
 {
     // Returns grouped rigidbody helpers
     return RigidbodyProxy(RequireComponent<::Rigidbody>("Rigidbody", "Rigidbody"));
+}
+
+TriggerProxy Entity::Trigger()
+{
+    // Returns grouped trigger helpers
+    return TriggerProxy(RequireComponent<::Collider>("Trigger", "Collider"));
 }

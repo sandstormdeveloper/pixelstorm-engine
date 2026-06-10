@@ -1,23 +1,37 @@
 #include "pixelstorm/scene/SceneManager.h"
 
 #include "pixelstorm/ecs/World.h"
+#include "pixelstorm/systems/PhysicsSystem.h"
 
 SceneManager::SceneManager()
     : m_World(nullptr),
+      m_PhysicsSystem(nullptr),
       m_ActiveScene(nullptr)
 {
 }
 
 SceneManager::SceneManager(World &world)
     : m_World(&world),
+      m_PhysicsSystem(nullptr),
       m_ActiveScene(nullptr)
 {
 }
 
 void SceneManager::SetWorld(World &world)
 {
-    // Assigns world for scenes
+    // Rebinds all registered scenes to the new world
     m_World = &world;
+
+    for (std::pair<const std::string, std::unique_ptr<Scene>> &sceneEntry : m_Scenes)
+    {
+        BindScene(*sceneEntry.second);
+    }
+}
+
+void SceneManager::SetPhysicsSystem(PhysicsSystem &physicsSystem)
+{
+    // Rebinds all registered scenes to the physics system
+    m_PhysicsSystem = &physicsSystem;
 
     for (std::pair<const std::string, std::unique_ptr<Scene>> &sceneEntry : m_Scenes)
     {
@@ -53,62 +67,62 @@ bool SceneManager::HasScene(const std::string &name) const
 
 bool SceneManager::ChangeScene(const std::string &name)
 {
-    // Looks for scene
+    // Looks for the scene by name
     std::unordered_map<std::string, std::unique_ptr<Scene>>::iterator iterator = m_Scenes.find(name);
 
-    // Returns false if scene or world doesn't exist
+    // Returns false if the scene or world is not ready
     if (iterator == m_Scenes.end() || !m_World)
     {
         return false;
     }
 
-    // Returns true if the scene is already loaded
+    // Returns true if the requested scene is already active
     Scene *nextScene = iterator->second.get();
     if (nextScene == m_ActiveScene)
     {
         return true;
     }
 
-    // Calls OnExit for active scene
+    // Calls OnExit for the current scene before switching
     if (m_ActiveScene)
     {
         m_ActiveScene->OnExit();
     }
 
-    // Removes entities from the previous scene before the new scene creates its content
+    // Clears the world so the next scene starts clean
     m_World->Clear();
 
-    // Activates scene
+    // Activates the new scene and binds the current context
     m_ActiveSceneName = name;
     m_ActiveScene = nextScene;
     BindScene(*m_ActiveScene);
 
-    // Call OnEnter for new scene
+    // Calls OnEnter for the new scene after the world is ready
     m_ActiveScene->OnEnter();
     return true;
 }
 
 void SceneManager::Update(float deltaTime)
 {
-    // Checks if scene and world exist
+    // Skips updates if there is no active scene or no world
     if (!m_ActiveScene || !m_World)
     {
         return;
     }
 
-    // Calls Update for current scene
+    // Updates the active scene gameplay logic
     m_ActiveScene->OnUpdate(deltaTime);
 }
 
 void SceneManager::Render()
 {
-    // Checks if scene and world exist
+    // Skips rendering if there is no active scene or no world
     if (!m_ActiveScene || !m_World)
     {
         return;
     }
 
-    // Calls Render for current scene
+    // Lets the active scene draw its own debug or custom content
     m_ActiveScene->OnRender();
 }
 
@@ -132,6 +146,6 @@ const std::string &SceneManager::GetActiveSceneName() const
 
 void SceneManager::BindScene(Scene &scene)
 {
-    // Connects the scene to the current world and scene manager
-    scene.SetContext(*m_World, *this);
+    // Connects the scene to the current engine context
+    scene.SetContext(*m_World, *this, m_PhysicsSystem);
 }

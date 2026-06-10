@@ -5,10 +5,49 @@
 #include "pixelstorm/components/Transform.h"
 #include "pixelstorm/ecs/Entity.h"
 #include "pixelstorm/ecs/Registry.h"
+#include "pixelstorm/physics/Collision.h"
 #include "pixelstorm/physics/Physics.h"
 
 #include <cstddef>
+#include <functional>
+#include <utility>
+#include <unordered_map>
 #include <vector>
+
+namespace
+{
+    void DispatchTriggerCallback(Entity recipient, const Entity &other, TriggerEventType type)
+    {
+        // Routes the trigger event to the callback stored on the trigger collider
+        Collider &collider = recipient.GetComponent<Collider>();
+        if (!collider.IsTrigger)
+        {
+            return;
+        }
+
+        switch (type)
+        {
+        case TriggerEventType::Enter:
+            if (collider.OnTriggerEnter)
+            {
+                collider.OnTriggerEnter(other);
+            }
+            break;
+        case TriggerEventType::Stay:
+            if (collider.OnTriggerStay)
+            {
+                collider.OnTriggerStay(other);
+            }
+            break;
+        case TriggerEventType::Exit:
+            if (collider.OnTriggerExit)
+            {
+                collider.OnTriggerExit(other);
+            }
+            break;
+        }
+    }
+}
 
 PhysicsSystem::PhysicsSystem()
     : m_Gravity(0.0f, 980.0f)
@@ -17,10 +56,13 @@ PhysicsSystem::PhysicsSystem()
 
 void PhysicsSystem::Update(Registry &registry, float deltaTime)
 {
-    // Gets dynamic candidates with all physics components
+    // Clears the event buffer so the current frame starts fresh
+    m_TriggerEvents.clear();
+
+    // Gets dynamic candidates with transform, rigidbody and collider data
     std::vector<Entity> physicsEntities = registry.GetEntitiesWith<Transform, Rigidbody, Collider>();
 
-    // Integrates velocity into transform position
+    // Integrates movement for all physics-enabled entities
     for (Entity entity : physicsEntities)
     {
         Rigidbody &rigidbody = entity.GetComponent<Rigidbody>();
@@ -104,6 +146,89 @@ void PhysicsSystem::Update(Registry &registry, float deltaTime)
                 secondCollider);
         }
     }
+
+    // Collects trigger overlaps separately from physical resolution
+    std::vector<Entity> triggerEntities = registry.GetEntitiesWith<Transform, Collider>();
+    std::unordered_set<TriggerPair, TriggerPairHash> currentTriggerPairs;
+
+    for (std::size_t firstIndex = 0; firstIndex < triggerEntities.size(); ++firstIndex)
+    {
+        Entity firstEntity = triggerEntities[firstIndex];
+        const Collider &firstCollider = firstEntity.GetComponent<Collider>();
+
+        for (std::size_t secondIndex = firstIndex + 1; secondIndex < triggerEntities.size(); ++secondIndex)
+        {
+            Entity secondEntity = triggerEntities[secondIndex];
+            const Collider &secondCollider = secondEntity.GetComponent<Collider>();
+
+            // Only one trigger is enough to treat the overlap as a sensor event
+            if (!firstCollider.IsTrigger && !secondCollider.IsTrigger)
+            {
+                continue;
+            }
+
+            const Transform &firstTransform = firstEntity.GetComponent<Transform>();
+            const Transform &secondTransform = secondEntity.GetComponent<Transform>();
+
+            const AABB firstBox = Collision::CreateAABB(firstTransform, firstCollider);
+            const AABB secondBox = Collision::CreateAABB(secondTransform, secondCollider);
+
+            if (!Collision::Overlaps(firstBox, secondBox))
+            {
+                continue;
+            }
+
+            const TriggerPair pair = MakeTriggerPair(firstEntity.GetId(), secondEntity.GetId());
+            currentTriggerPairs.insert(pair);
+
+            // Emits Enter the first frame the overlap appears, Stay on later frames
+            if (m_PreviousTriggerPairs.find(pair) == m_PreviousTriggerPairs.end())
+            {
+                m_TriggerEvents.push_back({TriggerEventType::Enter, pair.First, pair.Second});
+            }
+            else
+            {
+                m_TriggerEvents.push_back({TriggerEventType::Stay, pair.First, pair.Second});
+            }
+        }
+    }
+
+    for (const TriggerPair &pair : m_PreviousTriggerPairs)
+    {
+        // Emits Exit when an overlap disappears between frames
+        if (currentTriggerPairs.find(pair) == currentTriggerPairs.end())
+        {
+            m_TriggerEvents.push_back({TriggerEventType::Exit, pair.First, pair.Second});
+        }
+    }
+
+    // Dispatches trigger callbacks on the entities that opted into trigger behavior
+    std::unordered_map<EntityId, Entity> triggerLookup;
+    for (const Entity &entity : triggerEntities)
+    {
+        triggerLookup.emplace(entity.GetId(), entity);
+    }
+
+    for (const TriggerEvent &event : m_TriggerEvents)
+    {
+        const EntityId firstId = event.First;
+        const EntityId secondId = event.Second;
+
+        const std::unordered_map<EntityId, Entity>::iterator firstIt = triggerLookup.find(firstId);
+        const std::unordered_map<EntityId, Entity>::iterator secondIt = triggerLookup.find(secondId);
+
+        if (firstIt != triggerLookup.end())
+        {
+            DispatchTriggerCallback(firstIt->second, secondIt != triggerLookup.end() ? secondIt->second : firstIt->second, event.Type);
+        }
+
+        if (secondIt != triggerLookup.end())
+        {
+            DispatchTriggerCallback(secondIt->second, firstIt != triggerLookup.end() ? firstIt->second : secondIt->second, event.Type);
+        }
+    }
+
+    m_PreviousTriggerPairs = std::move(currentTriggerPairs);
 }
 
 void PhysicsSystem::SetGravity(const Vec2 &gravity)
@@ -128,4 +253,66 @@ void PhysicsSystem::ApplyGravity(Rigidbody &rigidbody, float deltaTime)
 
     // Applies gravity acceleration to velocity
     rigidbody.Velocity += m_Gravity * rigidbody.GravityScale * deltaTime;
+}
+
+const std::vector<TriggerEvent> &PhysicsSystem::GetTriggerEvents() const
+{
+    return m_TriggerEvents;
+}
+
+std::vector<TriggerEvent> PhysicsSystem::GetTriggerEventsFor(const Entity &entity) const
+{
+    // Filters the current event buffer to only the events that involve one entity
+    std::vector<TriggerEvent> filteredEvents;
+    for (const TriggerEvent &event : m_TriggerEvents)
+    {
+        if (event.Involves(entity))
+        {
+            filteredEvents.push_back(event);
+        }
+    }
+
+    return filteredEvents;
+}
+
+bool TriggerEvent::Involves(const Entity &entity) const
+{
+    // Checks whether the event belongs to the requested entity
+    return First == entity.GetId() || Second == entity.GetId();
+}
+
+EntityId TriggerEvent::Other(const Entity &entity) const
+{
+    // Returns the opposite entity id from the trigger pair
+    if (First == entity.GetId())
+    {
+        return Second;
+    }
+
+    return First;
+}
+
+bool PhysicsSystem::TriggerPair::operator==(const TriggerPair &other) const
+{
+    // Normalized pairs compare by id order and content
+    return First == other.First && Second == other.Second;
+}
+
+std::size_t PhysicsSystem::TriggerPairHash::operator()(const TriggerPair &pair) const
+{
+    // Combines both entity ids into a stable hash key
+    const std::size_t firstHash = std::hash<EntityId>{}(pair.First);
+    const std::size_t secondHash = std::hash<EntityId>{}(pair.Second);
+    return firstHash ^ (secondHash << 1);
+}
+
+PhysicsSystem::TriggerPair PhysicsSystem::MakeTriggerPair(EntityId first, EntityId second)
+{
+    // Sorts ids so the same two entities always produce the same pair
+    if (first > second)
+    {
+        std::swap(first, second);
+    }
+
+    return TriggerPair{first, second};
 }

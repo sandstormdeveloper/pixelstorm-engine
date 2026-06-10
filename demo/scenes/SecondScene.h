@@ -10,5 +10,7 @@ public:
     void OnExit() override;
 
 private:
-    Entity m_Box;
+    Entity m_Player;
+    Entity m_TriggerZone;
+    bool m_IsInsideTrigger = false;
 };

@@ -14,3 +14,4 @@
 #include "pixelstorm/input/Input.h"
 #include "pixelstorm/scene/Scene.h"
 #include "pixelstorm/scene/SceneManager.h"
+#include "pixelstorm/systems/PhysicsSystem.h"

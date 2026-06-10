@@ -5,6 +5,7 @@
 #include "pixelstorm/ecs/proxies/ColliderProxy.h"
 #include "pixelstorm/ecs/proxies/RigidbodyProxy.h"
 #include "pixelstorm/ecs/proxies/SpriteProxy.h"
+#include "pixelstorm/ecs/proxies/TriggerProxy.h"
 #include "pixelstorm/ecs/proxies/TransformProxy.h"
 
 #include <cstdint>
@@ -43,6 +44,7 @@ public:
     SpriteProxy Sprite();       // Returns sprite helpers
     ColliderProxy Collider();   // Returns collider helpers
     RigidbodyProxy Rigidbody(); // Returns rigidbody helpers
+    TriggerProxy Trigger();     // Returns trigger helpers
 
 private:
     template <typename T>
