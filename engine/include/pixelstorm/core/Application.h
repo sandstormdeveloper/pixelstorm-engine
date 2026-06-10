@@ -30,6 +30,8 @@ public:
     bool LoadTexture(const std::string &name, const std::string &assetPath); // Loads texture from runtime assets path
     void SetGravity(const Vec2 &gravity);                                     // Sets physics world gravity
     Vec2 GetGravity() const;                                                  // Returns physics world gravity
+    void SetDebugDrawColliders(bool enabled);                                 // Enables or disables collider debug rendering
+    bool IsDebugDrawCollidersEnabled() const;                                 // Returns collider debug rendering state
 
     void OnUpdate(const std::function<void(float)> &callback); // Passes update function to application
 
@@ -54,6 +56,7 @@ private:
     std::unique_ptr<ResourceManager> m_ResourceManager; // Loaded resources
     std::unique_ptr<PhysicsSystem> m_PhysicsSystem;     // Physics system
     std::unique_ptr<RenderSystem> m_RenderSystem;       // Render system
+    bool m_DebugDrawColliders;                          // Global collider debug flag
 
     Registry m_Registry; // Entity registry
     World m_World;       // Public game world handle

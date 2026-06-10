@@ -9,30 +9,29 @@ void GameScene::OnEnter()
         "Player",
         Vec2(160.0f, 180.0f),
         Vec2(32.0f, 32.0f),
-        Colors::White()
+        Colors::White(),
+        "player"
     );
 
-    m_Player.Sprite().SetTexture("player");
+    m_Player.Sprite().SetRenderOrder(100);
 
     // Creates a visible wall that can stop the player
     m_Wall = GetWorld().CreateStaticBox(
         "Wall",
         Vec2(240.0f, 180.0f),
         Vec2(32.0f, 32.0f),
-        Colors::White()
+        Colors::White(),
+        "wall"
     );
-
-    m_Wall.Sprite().SetTexture("wall");
 
     // Creates a dynamic crate so dynamic-vs-dynamic resolution is also exercised
     m_Crate = GetWorld().CreateActor(
         "Crate",
         Vec2(320.0f, 180.0f),
         Vec2(32.0f, 32.0f),
-        Colors::White()
+        Colors::White(),
+        "wall"
     );
-
-    m_Crate.Sprite().SetTexture("wall");
 
     // Creates a trigger area that only reports overlaps
     m_TriggerZone = GetWorld().CreateStaticBox(
@@ -40,17 +39,15 @@ void GameScene::OnEnter()
         Vec2(460.0f, 180.0f),
         Vec2(48.0f, 96.0f),
         Colors::Blue(),
+        "wall",
         true
     );
-
-    m_TriggerZone.Sprite().SetTexture("wall");
-    m_TriggerZone.Sprite().SetColor(Colors::Blue());
 
     // Registers trigger callbacks directly on the trigger zone
     m_TriggerZone.Trigger().SetOnEnter([this](Entity other) {
         if (other.GetId() == m_Player.GetId())
         {
-            Log::Debug("Player entered the GameScene trigger zone.");
+            Log::Debug("Player entered the trigger zone.");
             m_Player.Sprite().SetColor(Colors::Green());
         }
     });
@@ -58,7 +55,7 @@ void GameScene::OnEnter()
     m_TriggerZone.Trigger().SetOnExit([this](Entity other) {
         if (other.GetId() == m_Player.GetId())
         {
-            Log::Debug("Player exited the GameScene trigger zone.");
+            Log::Debug("Player exited the trigger zone.");
             m_Player.Sprite().SetColor(Colors::White());
         }
     });

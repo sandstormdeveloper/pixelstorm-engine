@@ -11,6 +11,7 @@ public:
     ~Renderer();
 
     void DrawQuad(const Shader &shader, const glm::mat4 &modelMatrix) const; // Draws a quad using a model matrix
+    void DrawQuadOutline(const Shader &shader, const glm::mat4 &modelMatrix) const; // Draws a quad outline using a model matrix
 
 private:
     unsigned int m_VAO; // Vertex Array Object

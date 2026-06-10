@@ -86,3 +86,18 @@ void Renderer::DrawQuad(const Shader &shader, const glm::mat4 &modelMatrix) cons
     // Desactivates VAO
     glBindVertexArray(0);
 }
+
+void Renderer::DrawQuadOutline(const Shader &shader, const glm::mat4 &modelMatrix) const
+{
+    // Uploads model transform to the active shader
+    shader.SetMat4("u_Model", modelMatrix);
+
+    // Activates VAO
+    glBindVertexArray(m_VAO);
+
+    // Draws the quad as an outline
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+    // Desactivates VAO
+    glBindVertexArray(0);
+}

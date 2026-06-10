@@ -17,7 +17,8 @@
 
 Application::Application(int width, int height, const char *title)
     : m_World(m_Registry),
-      m_SceneManager(m_World)
+      m_SceneManager(m_World),
+      m_DebugDrawColliders(false)
 {
     // Initializes the application
     Init(width, height, title);
@@ -78,6 +79,18 @@ Vec2 Application::GetGravity() const
     return Vec2(0.0f, 0.0f);
 }
 
+void Application::SetDebugDrawColliders(bool enabled)
+{
+    // Stores the global collider debug flag
+    m_DebugDrawColliders = enabled;
+}
+
+bool Application::IsDebugDrawCollidersEnabled() const
+{
+    // Returns the current collider debug flag state
+    return m_DebugDrawColliders;
+}
+
 void Application::Run()
 {
     // Run message
@@ -96,6 +109,13 @@ void Application::Run()
         }
 
         m_SceneManager.Update(Time::GetDeltaTime());
+
+        // Toggles collider debug drawing from the keyboard
+        if (Input::IsActionJustPressed("debug_colliders"))
+        {
+            SetDebugDrawColliders(!IsDebugDrawCollidersEnabled());
+            Log::Info(std::string("Collider debug drawing ") + (IsDebugDrawCollidersEnabled() ? "enabled." : "disabled."));
+        }
 
         // Updates physics after gameplay changes velocities
         if (m_PhysicsSystem)
@@ -129,7 +149,7 @@ void Application::Run()
             // Renders
             if (m_Renderer)
             {
-                m_RenderSystem->Render(m_Registry, *m_ResourceManager, *m_Renderer, *shaderToUse, m_Texture.get());
+                m_RenderSystem->Render(m_Registry, *m_ResourceManager, *m_Renderer, *shaderToUse, m_Texture.get(), m_DebugDrawColliders);
             }
         }
 

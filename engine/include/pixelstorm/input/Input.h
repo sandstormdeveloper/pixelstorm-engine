@@ -40,6 +40,7 @@ enum class Key
     Y = 89,
     Z = 90,
     Escape = 256,
+    F3 = 292,
     Right = 262,
     Left = 263,
     Down = 264,

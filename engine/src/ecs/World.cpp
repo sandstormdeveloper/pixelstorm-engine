@@ -31,22 +31,22 @@ Entity World::CreateEntity(const std::string &name)
     return RequireRegistry().CreateEntity(name);
 }
 
-Entity World::CreateSprite(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color)
+Entity World::CreateSprite(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName)
 {
     // Creates named entity
     Entity entity = CreateEntity(name);
 
     // Adds transform and visual component
     entity.AddComponent<Transform>(position, size, 0.0f);
-    entity.AddComponent<SpriteRenderer>(color);
+    entity.AddComponent<SpriteRenderer>(textureName, color);
 
     return entity;
 }
 
-Entity World::CreateStaticBox(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, bool isTrigger)
+Entity World::CreateStaticBox(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName, bool isTrigger)
 {
     // Creates visible entity first
-    Entity entity = CreateSprite(name, position, size, color);
+    Entity entity = CreateSprite(name, position, size, color, textureName);
 
     // Adds collision and static rigidbody
     entity.AddComponent<Collider>(size, glm::vec2(0.0f, 0.0f), isTrigger);
@@ -55,10 +55,10 @@ Entity World::CreateStaticBox(const std::string &name, const glm::vec2 &position
     return entity;
 }
 
-Entity World::CreateActor(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color)
+Entity World::CreateActor(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName)
 {
     // Creates visible entity first
-    Entity entity = CreateSprite(name, position, size, color);
+    Entity entity = CreateSprite(name, position, size, color, textureName);
 
     // Adds collision and dynamic rigidbody
     entity.AddComponent<Collider>(size);

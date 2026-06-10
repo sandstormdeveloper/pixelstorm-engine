@@ -525,6 +525,7 @@ void Input::RegisterDefaultBindings()
     AddActionBinding("jump", Key::Space);
     AddActionBinding("interact", Key::E);
     AddActionBinding("pause", Key::Escape);
+    AddActionBinding("debug_colliders", Key::F3);
 }
 
 bool Input::AnyActionKeyMatches(const std::string &actionName, bool (*predicate)(Key))

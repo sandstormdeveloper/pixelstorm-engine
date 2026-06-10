@@ -1,16 +1,50 @@
 #include "pixelstorm/systems/RenderSystem.h"
 #include "pixelstorm/components/SpriteRenderer.h"
 #include "pixelstorm/components/Transform.h"
+#include "pixelstorm/components/Collider.h"
 #include "pixelstorm/ecs/Registry.h"
+#include "pixelstorm/physics/Collision.h"
 #include "pixelstorm/renderer/Renderer.h"
 #include "pixelstorm/renderer/Shader.h"
 #include "pixelstorm/renderer/Texture.h"
 #include "pixelstorm/resources/ResourceManager.h"
 
-void RenderSystem::Render(Registry &registry, ResourceManager &resourceManager, Renderer &renderer, Shader &shader, Texture *fallbackTexture)
+#include <algorithm>
+#include <glad/glad.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <vector>
+
+void RenderSystem::Render(Registry &registry, ResourceManager &resourceManager, Renderer &renderer, Shader &shader, Texture *fallbackTexture, bool debugDrawColliders)
 {
-    // Loops through entities in registry with a transform and sprite renderer
-    for (Entity entity : registry.GetEntitiesWith<Transform, SpriteRenderer>())
+    // Collects renderable entities so they can be sorted before drawing
+    std::vector<Entity> renderEntities = registry.GetEntitiesWith<Transform, SpriteRenderer>();
+
+    std::stable_sort(renderEntities.begin(), renderEntities.end(),
+                     [&registry](const Entity &left, const Entity &right)
+                     {
+                         const SpriteRenderer &leftSprite = registry.GetComponent<SpriteRenderer>(left);
+                         const SpriteRenderer &rightSprite = registry.GetComponent<SpriteRenderer>(right);
+
+                         if (leftSprite.RenderOrder != rightSprite.RenderOrder)
+                         {
+                             return leftSprite.RenderOrder < rightSprite.RenderOrder;
+                         }
+
+                         const Transform &leftTransform = registry.GetComponent<Transform>(left);
+                         const Transform &rightTransform = registry.GetComponent<Transform>(right);
+
+                         if (leftTransform.Position.y != rightTransform.Position.y)
+                         {
+                             return leftTransform.Position.y < rightTransform.Position.y;
+                         }
+
+                         return left.GetId() < right.GetId();
+                     });
+
+    shader.SetInt("u_UseTexture", 1);
+
+    // Draws sprites in the order determined by layer and position
+    for (Entity entity : renderEntities)
     {
         // Gets components
         Transform &transform = registry.GetComponent<Transform>(entity);
@@ -34,4 +68,37 @@ void RenderSystem::Render(Registry &registry, ResourceManager &resourceManager, 
             renderer.DrawQuad(shader, transform.GetMatrix());
         }
     }
+
+    if (!debugDrawColliders)
+    {
+        return;
+    }
+
+    // Draws collider outlines on top of the scene for debugging
+    std::vector<Entity> colliderEntities = registry.GetEntitiesWith<Transform, Collider>();
+    if (fallbackTexture)
+    {
+        fallbackTexture->Bind();
+    }
+
+    shader.SetInt("u_Texture", 0);
+    shader.SetInt("u_UseTexture", 0);
+    glLineWidth(2.0f);
+
+    for (Entity entity : colliderEntities)
+    {
+        const Transform &transform = registry.GetComponent<Transform>(entity);
+        const Collider &collider = registry.GetComponent<Collider>(entity);
+        const AABB box = Collision::CreateAABB(transform, collider);
+
+        const glm::vec2 boxSize = box.Max - box.Min;
+        const glm::vec2 boxCenter = (box.Min + box.Max) * 0.5f;
+        const glm::mat4 debugModel = glm::translate(glm::mat4(1.0f), glm::vec3(boxCenter, 0.0f)) *
+                                     glm::scale(glm::mat4(1.0f), glm::vec3(boxSize, 1.0f));
+
+        shader.SetVec4("u_Color", collider.IsTrigger ? glm::vec4(0.0f, 1.0f, 0.8f, 1.0f) : glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        renderer.DrawQuadOutline(shader, debugModel);
+    }
+
+    glLineWidth(1.0f);
 }

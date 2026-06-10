@@ -52,6 +52,7 @@ namespace
 PhysicsSystem::PhysicsSystem()
     : m_Gravity(0.0f, 980.0f)
 {
+    // Starts with a default downward gravity
 }
 
 void PhysicsSystem::Update(Registry &registry, float deltaTime)
@@ -59,7 +60,7 @@ void PhysicsSystem::Update(Registry &registry, float deltaTime)
     // Clears the event buffer so the current frame starts fresh
     m_TriggerEvents.clear();
 
-    // Gets dynamic candidates with transform, rigidbody and collider data
+    // Gathers the movable physics bodies for this frame
     std::vector<Entity> physicsEntities = registry.GetEntitiesWith<Transform, Rigidbody, Collider>();
 
     // Integrates movement for all physics-enabled entities
@@ -72,7 +73,7 @@ void PhysicsSystem::Update(Registry &registry, float deltaTime)
         Physics::Integrate(transform, rigidbody, deltaTime);
     }
 
-    // Gets every entity that can participate in collision checks
+    // Reuses collider-only entities for static and trigger checks
     std::vector<Entity> colliderEntities = registry.GetEntitiesWith<Transform, Collider>();
 
     // Resolves dynamic bodies against static colliders
@@ -202,7 +203,7 @@ void PhysicsSystem::Update(Registry &registry, float deltaTime)
         }
     }
 
-    // Dispatches trigger callbacks on the entities that opted into trigger behavior
+    // Builds a fast lookup so trigger callbacks can be dispatched by entity id
     std::unordered_map<EntityId, Entity> triggerLookup;
     for (const Entity &entity : triggerEntities)
     {

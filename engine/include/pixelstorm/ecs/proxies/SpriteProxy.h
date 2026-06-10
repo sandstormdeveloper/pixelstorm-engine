@@ -55,6 +55,18 @@ public:
         m_Sprite.Visible = visible;
     }
 
+    int GetRenderOrder() const
+    {
+        // Returns sprite render order
+        return m_Sprite.RenderOrder;
+    }
+
+    void SetRenderOrder(int renderOrder)
+    {
+        // Updates sprite render order
+        m_Sprite.RenderOrder = renderOrder;
+    }
+
     void Show()
     {
         // Makes sprite visible
