@@ -48,7 +48,9 @@ void GameScene::OnEnter()
         if (other.GetId() == m_Player.GetId())
         {
             Log::Debug("Player entered the trigger zone.");
-            m_Player.Sprite().SetColor(Colors::Green());
+            other.Sprite().SetColor(Colors::Green());
+            other.Destroy();
+            m_Player = Entity();
         }
     });
 
@@ -56,13 +58,18 @@ void GameScene::OnEnter()
         if (other.GetId() == m_Player.GetId())
         {
             Log::Debug("Player exited the trigger zone.");
-            m_Player.Sprite().SetColor(Colors::White());
+            other.Sprite().SetColor(Colors::White());
         }
     });
 }
 
 void GameScene::OnUpdate(float deltaTime)
 {
+    if (!m_Player.IsValid())
+    {
+        return;
+    }
+
     // Reads the player input axis and converts it into horizontal or vertical movement
     const float speed = 120.0f;
     const Vec2 movement = Input::GetAxis2D("move");

@@ -21,6 +21,7 @@ public:
     Entity CreateSprite(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName = "");                            // Creates a visual entity
     Entity CreateStaticBox(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName = "", bool isTrigger = false); // Creates a static collider box
     Entity CreateActor(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName = "");                             // Creates a dynamic actor box
+    void DestroyEntity(Entity entity);                                                                                                                                                      // Destroys an entity and all its components
     void Clear();                                                                                                                                                                           // Removes all entities and components
     bool IsValid() const;                                                                                                                                                                   // Checks if registry is valid
 

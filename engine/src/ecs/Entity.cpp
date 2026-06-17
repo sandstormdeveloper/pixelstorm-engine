@@ -25,8 +25,17 @@ EntityId Entity::GetId() const
 
 bool Entity::IsValid() const
 {
-    // Returns valid if entity was created by registry
-    return (m_Id != 0 && m_Registry);
+    // Returns valid if entity still exists in the registry
+    return (m_Id != 0 && m_Registry && m_Registry->HasEntity(*this));
+}
+
+void Entity::Destroy()
+{
+    // Destroys this entity through the registry if possible
+    if (m_Registry)
+    {
+        m_Registry->DestroyEntity(*this);
+    }
 }
 
 Entity::Entity(EntityId id, Registry *registry)

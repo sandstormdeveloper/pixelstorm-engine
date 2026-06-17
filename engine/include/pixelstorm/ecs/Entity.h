@@ -24,6 +24,7 @@ public:
 
     EntityId GetId() const; // Returns entity identifier
     bool IsValid() const;   // Confirms if entity was created by registry
+    void Destroy();         // Destroys this entity and its components
 
     template <typename T, typename... Args>
     T &AddComponent(Args &&...args); // Adds component to entity

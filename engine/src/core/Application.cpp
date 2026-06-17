@@ -110,6 +110,9 @@ void Application::Run()
 
         m_SceneManager.Update(Time::GetDeltaTime());
 
+        // Frees entities destroyed during scene logic before physics runs
+        m_Registry.FlushDestroyedEntities();
+
         // Toggles collider debug drawing from the keyboard
         if (Input::IsActionJustPressed("debug_colliders"))
         {
@@ -122,6 +125,9 @@ void Application::Run()
         {
             m_PhysicsSystem->Update(m_Registry, Time::GetDeltaTime());
         }
+
+        // Frees entities destroyed by physics or triggers before rendering
+        m_Registry.FlushDestroyedEntities();
 
         // Clears screen with background color
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);

@@ -67,6 +67,12 @@ Entity World::CreateActor(const std::string &name, const glm::vec2 &position, co
     return entity;
 }
 
+void World::DestroyEntity(Entity entity)
+{
+    // Destroys the entity through the registry
+    RequireRegistry().DestroyEntity(entity);
+}
+
 void World::Clear()
 {
     // Clears all entities and components from the registry

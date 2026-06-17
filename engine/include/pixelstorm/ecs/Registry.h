@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 #include <typeindex>
+#include <unordered_set>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -15,6 +16,7 @@ class IComponentPool
 {
 public:
     virtual ~IComponentPool() = default;
+    virtual void RemoveEntity(EntityId entityId) = 0; // Removes all component data for one entity
 };
 
 template <typename T>
@@ -22,6 +24,12 @@ class ComponentPool : public IComponentPool
 {
 public:
     std::unordered_map<EntityId, T> Components; // Component table
+
+    void RemoveEntity(EntityId entityId) override
+    {
+        // Removes all components of this type for the entity
+        Components.erase(entityId);
+    }
 };
 
 class Registry
@@ -31,6 +39,8 @@ public:
 
     Entity CreateEntity();                        // Creates a new entity with a unique ID
     Entity CreateEntity(const std::string &name); // Creates a named entity
+    void DestroyEntity(Entity entity);            // Destroys an entity and all its components
+    void FlushDestroyedEntities();                // Frees component storage for destroyed entities
 
     template <typename T, typename... Args>
     T &AddComponent(Entity entity, Args &&...args); // Adds component to entity
@@ -50,6 +60,8 @@ public:
     template <typename... Components>
     std::vector<Entity> GetEntitiesWith(); // Returns entities with specific components
 
+    bool HasEntity(Entity entity) const; // Checks if entity exists in the registry
+
     void SetEntityName(Entity entity, const std::string &name); // Stores a debug/game-facing entity name
     std::string GetEntityName(Entity entity) const;             // Returns entity name, if any
     void Clear();                                               // Removes all entities and components
@@ -66,6 +78,7 @@ private:
 
     EntityId m_NextEntityId;                                                               // Next entity ID
     std::vector<EntityId> m_Entities;                                                      // Created entities
+    std::unordered_set<EntityId> m_DestroyedEntities;                                      // Entities waiting for deferred cleanup
     std::unordered_map<EntityId, std::string> m_EntityNames;                               // Optional entity names
     std::unordered_map<std::type_index, std::unique_ptr<IComponentPool>> m_ComponentPools; // All component pools
 };
@@ -73,6 +86,13 @@ private:
 template <typename T, typename... Args>
 T &Registry::AddComponent(Entity entity, Args &&...args)
 {
+    if (!HasEntity(entity))
+    {
+        const std::string message = "Attempted to add a component to an invalid or destroyed entity.";
+        Log::Error(message);
+        throw std::runtime_error(message);
+    }
+
     // Gets or creates the pool for this component type
     ComponentPool<T> *pool = GetOrCreateComponentPool<T>();
 
@@ -94,6 +114,11 @@ T &Registry::AddComponent(Entity entity, Args &&...args)
 template <typename T>
 bool Registry::HasComponent(Entity entity) const
 {
+    if (!HasEntity(entity))
+    {
+        return false;
+    }
+
     // Gets the pool if it already exists
     const ComponentPool<T> *pool = GetComponentPool<T>();
     if (!pool)
@@ -109,6 +134,11 @@ bool Registry::HasComponent(Entity entity) const
 template <typename T>
 T &Registry::GetComponent(Entity entity)
 {
+    if (!HasEntity(entity))
+    {
+        throw std::runtime_error("Entity not found.");
+    }
+
     // Gets the component pool for this type
     ComponentPool<T> *pool = GetComponentPool<T>();
     if (!pool)
@@ -129,6 +159,11 @@ T &Registry::GetComponent(Entity entity)
 template <typename T>
 const T &Registry::GetComponent(Entity entity) const
 {
+    if (!HasEntity(entity))
+    {
+        throw std::runtime_error("Entity not found.");
+    }
+
     // Gets the component pool for this type in read-only mode
     const ComponentPool<T> *pool = GetComponentPool<T>();
     if (!pool)
@@ -149,6 +184,12 @@ const T &Registry::GetComponent(Entity entity) const
 template <typename T>
 void Registry::RemoveComponent(Entity entity)
 {
+    if (!HasEntity(entity))
+    {
+        Log::Warning("Attempted to remove a component from an invalid or destroyed entity.");
+        return;
+    }
+
     // Gets the pool if it exists and removes the component entry
     ComponentPool<T> *pool = GetComponentPool<T>();
     if (pool)
