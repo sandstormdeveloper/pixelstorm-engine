@@ -5,12 +5,16 @@ void SecondScene::OnEnter()
     Log::Debug("Entering SecondScene");
 
     // Creates a lightweight actor that moves on its own to test trigger events
-    m_Player = GetWorld().CreateActor(
+    m_Player = GetWorld().CreateAnimatedActor(
         "Trigger Tester",
         Vec2(120.0f, 180.0f),
         Vec2(32.0f, 32.0f),
         Colors::White(),
-        "player"
+        "player_run",
+        {
+            { "walk", { glm::ivec2(32, 32), 4, 4, 8.0f, true, 0 } }
+        },
+        "walk"
     );
 
     m_Player.Rigidbody().SetVelocity(Vec2(90.0f, 0.0f));

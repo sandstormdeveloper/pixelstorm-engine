@@ -6,7 +6,7 @@ int main()
 {
     Application app(640, 360, "Demo");
 
-    app.LoadTexture("player", "assets/player.png");
+    app.LoadTexture("player_run", "assets/player_run.png");
     app.LoadTexture("wall", "assets/wall.png");
 
     app.GetScenes().AddScene("game", std::make_unique<GameScene>());

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pixelstorm/components/Animation.h"
 #include "pixelstorm/components/Collider.h"
 #include "pixelstorm/components/Rigidbody.h"
 #include "pixelstorm/components/SpriteRenderer.h"
@@ -14,4 +15,5 @@
 #include "pixelstorm/input/Input.h"
 #include "pixelstorm/scene/Scene.h"
 #include "pixelstorm/scene/SceneManager.h"
+#include "pixelstorm/systems/AnimationSystem.h"
 #include "pixelstorm/systems/PhysicsSystem.h"

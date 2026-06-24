@@ -1,5 +1,6 @@
 #include "pixelstorm/ecs/World.h"
 
+#include "pixelstorm/components/Animation.h"
 #include "pixelstorm/components/Collider.h"
 #include "pixelstorm/components/Rigidbody.h"
 #include "pixelstorm/components/SpriteRenderer.h"
@@ -41,6 +42,47 @@ Entity World::CreateSprite(const std::string &name, const glm::vec2 &position, c
     entity.AddComponent<SpriteRenderer>(textureName, color);
 
     return entity;
+}
+
+Entity World::CreateAnimatedActor(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName, const AnimationClips &clips, const std::string &initialClip)
+{
+    // Creates a visible entity first so animation can be attached to a playable actor
+    Entity entity = CreateSprite(name, position, size, color, textureName);
+
+    // Adds collision and dynamic rigidbody so the animated entity can participate in gameplay
+    entity.AddComponent<Collider>(size);
+    entity.AddComponent<Rigidbody>(glm::vec2(0.0f, 0.0f), false);
+
+    // Adds an animator so the sprite can cycle through frames
+    entity.AddComponent<Animator>();
+
+    // Registers all the clips provided by the caller
+    for (const auto &clipEntry : clips)
+    {
+        entity.Animation().AddClip(clipEntry.first, clipEntry.second);
+    }
+
+    // Picks the requested initial clip, falling back to the first available clip if needed
+    if (!initialClip.empty() && entity.Animation().HasClip(initialClip))
+    {
+        entity.Animation().Play(initialClip);
+    }
+    else if (!clips.empty())
+    {
+        entity.Animation().Play(clips.begin()->first);
+    }
+
+    return entity;
+}
+
+Entity World::CreateAnimatedSprite(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName, const glm::ivec2 &frameSize, int frameCount, int framesPerRow, float fps, bool loop)
+{
+    // Builds a one-clip animation map for the legacy helper
+    AnimationClips clips;
+    clips.emplace("default", AnimationClip(frameSize, frameCount, framesPerRow, fps, loop, 0));
+
+    // Reuses the newer animated actor helper so both APIs stay in sync
+    return CreateAnimatedActor(name, position, size, color, textureName, clips, "default");
 }
 
 Entity World::CreateStaticBox(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName, bool isTrigger)

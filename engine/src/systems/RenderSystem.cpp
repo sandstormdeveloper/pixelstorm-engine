@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/vec4.hpp>
 #include <vector>
 
 void RenderSystem::Render(Registry &registry, ResourceManager &resourceManager, Renderer &renderer, Shader &shader, Texture *fallbackTexture, bool debugDrawColliders)
@@ -63,8 +64,20 @@ void RenderSystem::Render(Registry &registry, ResourceManager &resourceManager, 
         // Draws entity if valid
         if (sprite.Visible && texture)
         {
+            const float textureWidth = static_cast<float>(std::max(texture->GetWidth(), 1));
+            const float textureHeight = static_cast<float>(std::max(texture->GetHeight(), 1));
+            const glm::ivec4 sourceRect = (sprite.SourceRect.z > 0 && sprite.SourceRect.w > 0)
+                                              ? sprite.SourceRect
+                                              : glm::ivec4(0, 0, static_cast<int>(textureWidth), static_cast<int>(textureHeight));
+            const glm::vec4 normalizedSourceRect(
+                static_cast<float>(sourceRect.x) / textureWidth,
+                static_cast<float>(sourceRect.y) / textureHeight,
+                static_cast<float>(sourceRect.z) / textureWidth,
+                static_cast<float>(sourceRect.w) / textureHeight);
+
             texture->Bind();
             shader.SetVec4("u_Color", sprite.Color);
+            shader.SetVec4("u_SourceRect", normalizedSourceRect);
             renderer.DrawQuad(shader, transform.GetMatrix());
         }
     }

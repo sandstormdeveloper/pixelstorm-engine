@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
 struct SpriteRenderer
@@ -10,6 +11,7 @@ struct SpriteRenderer
     glm::vec4 Color;         // RGBA tint multiplier
     bool Visible;            // Whether the sprite should be drawn
     int RenderOrder;         // Draw order inside the current scene
+    glm::ivec4 SourceRect;   // Optional texture region in pixels: x, y, width, height
 
     SpriteRenderer();
     explicit SpriteRenderer(const glm::vec4 &color, bool visible = true);

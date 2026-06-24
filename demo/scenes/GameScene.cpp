@@ -5,12 +5,17 @@ void GameScene::OnEnter()
     Log::Debug("Entering GameScene");
 
     // Creates the main player actor used to test movement and collisions
-    m_Player = GetWorld().CreateActor(
+    m_Player = GetWorld().CreateAnimatedActor(
         "Player",
         Vec2(160.0f, 180.0f),
         Vec2(32.0f, 32.0f),
         Colors::White(),
-        "player"
+        "player_run",
+        {
+            { "idle", { glm::ivec2(32, 32), 4, 4, 0.0f, true, 0 } },
+            { "walk", { glm::ivec2(32, 32), 4, 4, 10.0f, true, 0 } }
+        },
+        "idle"
     );
 
     m_Player.Sprite().SetRenderOrder(100);
@@ -75,6 +80,15 @@ void GameScene::OnUpdate(float deltaTime)
     const Vec2 movement = Input::GetAxis2D("move");
 
     m_Player.Rigidbody().SetVelocity(movement * speed);
+
+    if (movement.x != 0.0f || movement.y != 0.0f)
+    {
+        m_Player.Animation().Play("walk");
+    }
+    else
+    {
+        m_Player.Animation().Play("idle");
+    }
 
     if (Input::IsActionJustPressed("jump"))
     {

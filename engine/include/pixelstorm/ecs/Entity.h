@@ -2,6 +2,7 @@
 
 #include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Math.h"
+#include "pixelstorm/ecs/proxies/AnimationProxy.h"
 #include "pixelstorm/ecs/proxies/ColliderProxy.h"
 #include "pixelstorm/ecs/proxies/RigidbodyProxy.h"
 #include "pixelstorm/ecs/proxies/SpriteProxy.h"
@@ -46,6 +47,7 @@ public:
     ColliderProxy Collider();   // Returns collider helpers
     RigidbodyProxy Rigidbody(); // Returns rigidbody helpers
     TriggerProxy Trigger();     // Returns trigger helpers
+    AnimationProxy Animation(); // Returns animation helpers
 
 private:
     template <typename T>

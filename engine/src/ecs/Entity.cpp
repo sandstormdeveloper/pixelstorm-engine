@@ -1,10 +1,12 @@
 #include "pixelstorm/ecs/Entity.h"
 
+#include "pixelstorm/components/Animation.h"
 #include "pixelstorm/components/Collider.h"
 #include "pixelstorm/components/Rigidbody.h"
 #include "pixelstorm/components/SpriteRenderer.h"
 #include "pixelstorm/components/Transform.h"
 #include "pixelstorm/ecs/Registry.h"
+#include "pixelstorm/ecs/proxies/AnimationProxy.h"
 #include "pixelstorm/ecs/proxies/ColliderProxy.h"
 #include "pixelstorm/ecs/proxies/RigidbodyProxy.h"
 #include "pixelstorm/ecs/proxies/SpriteProxy.h"
@@ -72,4 +74,10 @@ TriggerProxy Entity::Trigger()
 {
     // Returns grouped trigger helpers
     return TriggerProxy(RequireComponent<::Collider>("Trigger", "Collider"));
+}
+
+AnimationProxy Entity::Animation()
+{
+    // Returns grouped animation helpers
+    return AnimationProxy(RequireComponent<::Animator>("Animation", "Animator"));
 }

@@ -41,6 +41,8 @@ namespace
 
 Texture::Texture()
     : m_ID(0)
+    , m_Width(2)
+    , m_Height(2)
 {
     // Creates OpenGL texture
     glGenTextures(1, &m_ID);
@@ -50,6 +52,8 @@ Texture::Texture()
 
 Texture::Texture(const std::string &path)
     : m_ID(0)
+    , m_Width(0)
+    , m_Height(0)
 {
     // Creates OpenGL texture
     glGenTextures(1, &m_ID);
@@ -64,6 +68,8 @@ Texture::Texture(const std::string &path)
 
     if (pixels)
     {
+        m_Width = width;
+        m_Height = height;
         UploadTexturePixels(m_ID, width, height, pixels);
         stbi_image_free(pixels);
         Log::Info("Texture loaded from file: " + path);
@@ -73,6 +79,8 @@ Texture::Texture(const std::string &path)
     Log::Warning("Failed to load texture from file. Falling back to default texture: " + path);
 
     // Falls back to procedural texture if loading fails
+    m_Width = 2;
+    m_Height = 2;
     UploadDefaultTexture(m_ID);
 }
 
@@ -93,4 +101,16 @@ void Texture::Bind(unsigned int slot) const
 
     // Binds texture to slot
     glBindTexture(GL_TEXTURE_2D, m_ID);
+}
+
+int Texture::GetWidth() const
+{
+    // Returns the cached texture width
+    return m_Width;
+}
+
+int Texture::GetHeight() const
+{
+    // Returns the cached texture height
+    return m_Height;
 }
