@@ -37,10 +37,11 @@ class Registry
 public:
     Registry();
 
-    Entity CreateEntity();                        // Creates a new entity with a unique ID
-    Entity CreateEntity(const std::string &name); // Creates a named entity
-    void DestroyEntity(Entity entity);            // Destroys an entity and all its components
-    void FlushDestroyedEntities();                // Frees component storage for destroyed entities
+    Entity CreateEntity(bool logCreation = true);                  // Creates a new entity with a unique ID
+    Entity CreateEntity(const std::string &name);                  // Creates a named entity
+    Entity CreateEntitySilent(const std::string &name);            // Creates a named entity without logging
+    void DestroyEntity(Entity entity, bool logDestruction = true); // Destroys an entity and all its components
+    void FlushDestroyedEntities();                                 // Frees component storage for destroyed entities
 
     template <typename T, typename... Args>
     T &AddComponent(Entity entity, Args &&...args); // Adds component to entity

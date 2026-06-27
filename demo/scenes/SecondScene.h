@@ -10,7 +10,8 @@ public:
     void OnExit() override;
 
 private:
-    Entity m_Player;
-    Entity m_TriggerZone;
+    Entity m_Player;        // Actor that moves through the trigger volume
+    Entity m_PlayerEmitter; // Helper emitter used for trigger feedback
+    Entity m_TriggerZone;   // Trigger volume used for the scene logic
     bool m_IsInsideTrigger = false;
 };

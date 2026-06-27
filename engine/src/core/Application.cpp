@@ -8,6 +8,7 @@
 #include "pixelstorm/renderer/Texture.h"
 #include "pixelstorm/resources/ResourceManager.h"
 #include "pixelstorm/systems/AnimationSystem.h"
+#include "pixelstorm/systems/ParticleSystem.h"
 #include "pixelstorm/systems/PhysicsSystem.h"
 #include "pixelstorm/systems/RenderSystem.h"
 #include <pixelstorm/input/Input.h>
@@ -133,6 +134,12 @@ void Application::Run()
             m_AnimationSystem->Update(m_Registry, Time::GetDeltaTime());
         }
 
+        // Advances particle emitters and removes expired particle entities
+        if (m_ParticleSystem)
+        {
+            m_ParticleSystem->Update(m_Registry, Time::GetDeltaTime());
+        }
+
         // Frees entities destroyed by physics or triggers before rendering
         m_Registry.FlushDestroyedEntities();
 
@@ -197,10 +204,11 @@ void Application::Init(int width, int height, const char *title)
     // Creates renderer
     m_Renderer = std::make_unique<Renderer>();
     m_AnimationSystem = std::make_unique<AnimationSystem>();
+    m_ParticleSystem = std::make_unique<ParticleSystem>();
     m_PhysicsSystem = std::make_unique<PhysicsSystem>();
     m_RenderSystem = std::make_unique<RenderSystem>();
     m_SceneManager.SetPhysicsSystem(*m_PhysicsSystem);
-    Log::Info("Renderer, animation system, physics system and render system created.");
+    Log::Info("Renderer, animation system, particle system, physics system and render system created.");
 
     // Creates camera
     m_Camera = std::make_unique<Camera2D>(
@@ -233,6 +241,7 @@ void Application::Shutdown()
     m_Texture.reset();
     m_RenderSystem.reset();
     m_AnimationSystem.reset();
+    m_ParticleSystem.reset();
     m_PhysicsSystem.reset();
     m_Camera.reset();
     m_Renderer.reset();

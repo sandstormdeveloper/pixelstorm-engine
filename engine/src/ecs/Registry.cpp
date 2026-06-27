@@ -7,24 +7,35 @@ Registry::Registry()
 {
 }
 
-Entity Registry::CreateEntity()
+Entity Registry::CreateEntity(bool logCreation)
 {
     // Creates a new entity and updates next ID
     const EntityId entityId = m_NextEntityId++;
     m_Entities.push_back(entityId);
-    Log::Info("Entity created with id " + std::to_string(entityId) + ".");
+    if (logCreation)
+    {
+        Log::Info("Entity created with id " + std::to_string(entityId) + ".");
+    }
     return Entity(entityId, this);
 }
 
 Entity Registry::CreateEntity(const std::string &name)
 {
     // Creates entity and stores a readable name for game/debug code
-    Entity entity = CreateEntity();
+    Entity entity = CreateEntity(true);
     SetEntityName(entity, name);
     return entity;
 }
 
-void Registry::DestroyEntity(Entity entity)
+Entity Registry::CreateEntitySilent(const std::string &name)
+{
+    // Creates entity without printing creation logs
+    Entity entity = CreateEntity(false);
+    m_EntityNames[entity.GetId()] = name;
+    return entity;
+}
+
+void Registry::DestroyEntity(Entity entity, bool logDestruction)
 {
     // Rejects invalid or already destroyed entities
     if (!HasEntity(entity))
@@ -44,7 +55,10 @@ void Registry::DestroyEntity(Entity entity)
     // Defers component storage cleanup until the end of the frame
     m_DestroyedEntities.insert(entity.GetId());
 
-    Log::Info("Entity " + std::to_string(entity.GetId()) + " destroyed.");
+    if (logDestruction)
+    {
+        Log::Info("Entity " + std::to_string(entity.GetId()) + " destroyed.");
+    }
 }
 
 void Registry::FlushDestroyedEntities()

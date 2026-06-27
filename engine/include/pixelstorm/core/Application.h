@@ -12,6 +12,7 @@
 class Camera2D;
 class Renderer;
 class AnimationSystem;
+class ParticleSystem;
 class PhysicsSystem;
 class RenderSystem;
 class ResourceManager;
@@ -56,6 +57,7 @@ private:
     std::unique_ptr<Texture> m_Texture;                 // Fallback procedural texture
     std::unique_ptr<ResourceManager> m_ResourceManager; // Loaded resources
     std::unique_ptr<AnimationSystem> m_AnimationSystem; // Sprite animation system
+    std::unique_ptr<ParticleSystem> m_ParticleSystem;   // Particle simulation system
     std::unique_ptr<PhysicsSystem> m_PhysicsSystem;     // Physics system
     std::unique_ptr<RenderSystem> m_RenderSystem;       // Render system
     bool m_DebugDrawColliders;                          // Global collider debug flag

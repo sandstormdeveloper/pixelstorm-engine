@@ -2,12 +2,14 @@
 
 #include "pixelstorm/components/Animation.h"
 #include "pixelstorm/components/Collider.h"
+#include "pixelstorm/components/Particle.h"
 #include "pixelstorm/components/Rigidbody.h"
 #include "pixelstorm/components/SpriteRenderer.h"
 #include "pixelstorm/components/Transform.h"
 #include "pixelstorm/ecs/Registry.h"
 #include "pixelstorm/ecs/proxies/AnimationProxy.h"
 #include "pixelstorm/ecs/proxies/ColliderProxy.h"
+#include "pixelstorm/ecs/proxies/ParticleEmitterProxy.h"
 #include "pixelstorm/ecs/proxies/RigidbodyProxy.h"
 #include "pixelstorm/ecs/proxies/SpriteProxy.h"
 #include "pixelstorm/ecs/proxies/TriggerProxy.h"
@@ -31,12 +33,12 @@ bool Entity::IsValid() const
     return (m_Id != 0 && m_Registry && m_Registry->HasEntity(*this));
 }
 
-void Entity::Destroy()
+void Entity::Destroy(bool logDestruction)
 {
     // Destroys this entity through the registry if possible
     if (m_Registry)
     {
-        m_Registry->DestroyEntity(*this);
+        m_Registry->DestroyEntity(*this, logDestruction);
     }
 }
 
@@ -80,4 +82,10 @@ AnimationProxy Entity::Animation()
 {
     // Returns grouped animation helpers
     return AnimationProxy(RequireComponent<::Animator>("Animation", "Animator"));
+}
+
+ParticleEmitterProxy Entity::Particles()
+{
+    // Returns grouped particle emitter helpers
+    return ParticleEmitterProxy(RequireComponent<::ParticleEmitter>("Particles", "ParticleEmitter"));
 }

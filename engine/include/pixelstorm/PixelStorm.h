@@ -2,6 +2,7 @@
 
 #include "pixelstorm/components/Animation.h"
 #include "pixelstorm/components/Collider.h"
+#include "pixelstorm/components/Particle.h"
 #include "pixelstorm/components/Rigidbody.h"
 #include "pixelstorm/components/SpriteRenderer.h"
 #include "pixelstorm/components/Transform.h"
@@ -16,4 +17,5 @@
 #include "pixelstorm/scene/Scene.h"
 #include "pixelstorm/scene/SceneManager.h"
 #include "pixelstorm/systems/AnimationSystem.h"
+#include "pixelstorm/systems/ParticleSystem.h"
 #include "pixelstorm/systems/PhysicsSystem.h"

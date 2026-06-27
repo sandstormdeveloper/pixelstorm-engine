@@ -2,6 +2,7 @@
 
 #include "pixelstorm/components/Animation.h"
 #include "pixelstorm/components/Collider.h"
+#include "pixelstorm/components/Particle.h"
 #include "pixelstorm/components/Rigidbody.h"
 #include "pixelstorm/components/SpriteRenderer.h"
 #include "pixelstorm/components/Transform.h"
@@ -35,7 +36,7 @@ Entity World::CreateEntity(const std::string &name)
 Entity World::CreateSprite(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName)
 {
     // Creates named entity
-    Entity entity = CreateEntity(name);
+    Entity entity = RequireRegistry().CreateEntitySilent(name);
 
     // Adds transform and visual component
     entity.AddComponent<Transform>(position, size, 0.0f);
@@ -83,6 +84,39 @@ Entity World::CreateAnimatedSprite(const std::string &name, const glm::vec2 &pos
 
     // Reuses the newer animated actor helper so both APIs stay in sync
     return CreateAnimatedActor(name, position, size, color, textureName, clips, "default");
+}
+
+Entity World::CreateParticleEmitter(const std::string &name, const glm::vec2 &position, const std::string &textureName, int burstCount, float lifetime, float speed, float speedVariation, float spread, const glm::vec4 &startColor, const glm::vec4 &endColor, const glm::vec2 &startScale, const glm::vec2 &endScale, float gravityScale, int renderOrder, bool autoEmit, bool loop, float emitRate)
+{
+    // Creates a lightweight entity used only to drive particle effects
+    Entity entity = CreateEntity(name);
+
+    // Particles need a transform so the system knows where to spawn them
+    entity.AddComponent<Transform>(position, glm::vec2(1.0f, 1.0f), 0.0f);
+
+    // Builds the emitter configuration locally before storing it on the entity
+    ParticleEmitter emitter;
+    emitter.TextureName = textureName;
+    emitter.BurstCount = burstCount;
+    emitter.Lifetime = lifetime;
+    emitter.Speed = speed;
+    emitter.SpeedVariation = speedVariation;
+    emitter.Spread = spread;
+    emitter.StartColor = startColor;
+    emitter.EndColor = endColor;
+    emitter.StartScale = startScale;
+    emitter.EndScale = endScale;
+    emitter.GravityScale = gravityScale;
+    emitter.RenderOrder = renderOrder;
+    emitter.AutoEmit = autoEmit;
+    emitter.Loop = loop;
+    emitter.EmitRate = emitRate;
+    emitter.Active = true;
+
+    // Copies the configured emitter into the entity
+    entity.AddComponent<ParticleEmitter>(emitter);
+
+    return entity;
 }
 
 Entity World::CreateStaticBox(const std::string &name, const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color, const std::string &textureName, bool isTrigger)

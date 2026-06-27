@@ -4,6 +4,7 @@
 #include "pixelstorm/core/Math.h"
 #include "pixelstorm/ecs/proxies/AnimationProxy.h"
 #include "pixelstorm/ecs/proxies/ColliderProxy.h"
+#include "pixelstorm/ecs/proxies/ParticleEmitterProxy.h"
 #include "pixelstorm/ecs/proxies/RigidbodyProxy.h"
 #include "pixelstorm/ecs/proxies/SpriteProxy.h"
 #include "pixelstorm/ecs/proxies/TriggerProxy.h"
@@ -23,9 +24,9 @@ class Entity
 public:
     Entity();
 
-    EntityId GetId() const; // Returns entity identifier
-    bool IsValid() const;   // Confirms if entity was created by registry
-    void Destroy();         // Destroys this entity and its components
+    EntityId GetId() const;                   // Returns entity identifier
+    bool IsValid() const;                     // Confirms if entity was created by registry
+    void Destroy(bool logDestruction = true); // Destroys this entity and its components
 
     template <typename T, typename... Args>
     T &AddComponent(Args &&...args); // Adds component to entity
@@ -42,12 +43,13 @@ public:
     template <typename T>
     void RemoveComponent(); // Removes component
 
-    TransformProxy Transform(); // Returns transform helpers
-    SpriteProxy Sprite();       // Returns sprite helpers
-    ColliderProxy Collider();   // Returns collider helpers
-    RigidbodyProxy Rigidbody(); // Returns rigidbody helpers
-    TriggerProxy Trigger();     // Returns trigger helpers
-    AnimationProxy Animation(); // Returns animation helpers
+    TransformProxy Transform();       // Returns transform helpers
+    SpriteProxy Sprite();             // Returns sprite helpers
+    ColliderProxy Collider();         // Returns collider helpers
+    RigidbodyProxy Rigidbody();       // Returns rigidbody helpers
+    TriggerProxy Trigger();           // Returns trigger helpers
+    AnimationProxy Animation();       // Returns animation helpers
+    ParticleEmitterProxy Particles(); // Returns particle emitter helpers
 
 private:
     template <typename T>

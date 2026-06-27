@@ -20,6 +20,47 @@ void GameScene::OnEnter()
 
     m_Player.Sprite().SetRenderOrder(100);
 
+    // Gives the player a small burst emitter used for jump and trigger feedback
+    m_PlayerEmitter = GetWorld().CreateParticleEmitter(
+        "PlayerParticles",
+        Vec2(160.0f, 180.0f),
+        "wall",
+        10,
+        0.45f,
+        110.0f,
+        40.0f,
+        220.0f,
+        glm::vec4(1.0f, 0.85f, 0.25f, 1.0f),
+        glm::vec4(1.0f, 0.20f, 0.05f, 0.0f),
+        Vec2(6.0f, 6.0f),
+        Vec2(2.0f, 2.0f),
+        0.0f,
+        50,
+        false,
+        false,
+        0.0f
+    );
+    // Creates a standalone ambient emitter so the demo shows the world-level helper in action
+    m_DustEmitter = GetWorld().CreateParticleEmitter(
+        "Dust",
+        Vec2(200.0f, 330.0f),
+        "wall",
+        3,
+        0.9f,
+        18.0f,
+        10.0f,
+        360.0f,
+        glm::vec4(0.85f, 0.85f, 0.90f, 0.60f),
+        glm::vec4(0.85f, 0.85f, 0.90f, 0.0f),
+        Vec2(4.0f, 4.0f),
+        Vec2(1.0f, 1.0f),
+        0.0f,
+        10,
+        true,
+        true,
+        1.5f
+    );
+
     // Creates a visible wall that can stop the player
     m_Wall = GetWorld().CreateStaticBox(
         "Wall",
@@ -53,6 +94,8 @@ void GameScene::OnEnter()
         if (other.GetId() == m_Player.GetId())
         {
             Log::Debug("Player entered the trigger zone.");
+            m_PlayerEmitter.Transform().SetPosition(other.Transform().GetPosition());
+            m_PlayerEmitter.Particles().EmitBurst(12);
             other.Sprite().SetColor(Colors::Green());
             other.Destroy();
             m_Player = Entity();
@@ -75,6 +118,9 @@ void GameScene::OnUpdate(float deltaTime)
         return;
     }
 
+    // Keeps the particle helper attached to the player while the actor exists
+    m_PlayerEmitter.Transform().SetPosition(m_Player.Transform().GetPosition());
+
     // Reads the player input axis and converts it into horizontal or vertical movement
     const float speed = 120.0f;
     const Vec2 movement = Input::GetAxis2D("move");
@@ -93,6 +139,7 @@ void GameScene::OnUpdate(float deltaTime)
     if (Input::IsActionJustPressed("jump"))
     {
         m_Player.Sprite().SetColor(Colors::Green());
+        m_PlayerEmitter.Particles().EmitBurst(10);
     }
 
     if (Input::IsActionJustReleased("jump"))
