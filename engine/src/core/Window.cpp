@@ -3,6 +3,9 @@
 #include <glad/glad.h>
 #include <stdexcept>
 
+int Window::s_LogicalWidth = 0;
+int Window::s_LogicalHeight = 0;
+
 Window::Window(int width, int height, const char *title)
     : m_Window(nullptr)
 {
@@ -25,6 +28,13 @@ Window::Window(int width, int height, const char *title)
     }
 
     Log::Info("Window created successfully.");
+
+    // Stores logical render size used by the camera and mouse mapping
+    s_LogicalWidth = width;
+    s_LogicalHeight = height;
+
+    // Keeps the original aspect ratio when the window is resized
+    glfwSetWindowAspectRatio(m_Window, width, height);
 
     // Makes the window's context current on this thread
     glfwMakeContextCurrent(m_Window);
@@ -80,12 +90,25 @@ void Window::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
 {
     // Adjusts viewport when window is resized
     (void)window;
-    glViewport(0, 0, width, height);
-    Log::Info("Viewport resized to " + std::to_string(width) + "x" + std::to_string(height) + ".");
+    if (width > 0 && height > 0)
+    {
+        glViewport(0, 0, width, height);
+        Log::Info("Viewport resized to " + std::to_string(width) + "x" + std::to_string(height) + ".");
+    }
 }
 
 GLFWwindow *Window::GetNativeWindow() const
 {
     // Returns GLFW window
     return m_Window;
+}
+
+int Window::GetLogicalWidth()
+{
+    return s_LogicalWidth;
+}
+
+int Window::GetLogicalHeight()
+{
+    return s_LogicalHeight;
 }

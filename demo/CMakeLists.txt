@@ -7,6 +7,10 @@ add_executable(pixelstorm_demo
     ${DEMO_SCENE_SOURCES}
 )
 
+target_include_directories(pixelstorm_demo PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
 target_link_libraries(pixelstorm_demo PRIVATE pixelstorm_engine)
 
 add_custom_command(TARGET pixelstorm_demo POST_BUILD

@@ -1,8 +1,10 @@
 #include "pixelstorm/input/Input.h"
 
 #include "pixelstorm/core/Log.h"
+#include "pixelstorm/core/Window.h"
 
 #include <algorithm>
+#include <cmath>
 #include <GLFW/glfw3.h>
 #include <glm/geometric.hpp>
 
@@ -170,8 +172,26 @@ bool Input::IsMouseButtonJustReleased(MouseButton button)
 
 Vec2 Input::GetMousePosition()
 {
-    // Returns current mouse position
-    return s_CurrentMousePosition;
+    // Maps cursor position to the logical rendering resolution
+    if (!s_Window)
+    {
+        return s_CurrentMousePosition;
+    }
+
+    int windowWidth = 0;
+    int windowHeight = 0;
+    glfwGetWindowSize(s_Window, &windowWidth, &windowHeight);
+    if (windowWidth <= 0 || windowHeight <= 0)
+    {
+        return s_CurrentMousePosition;
+    }
+
+    const float logicalWidth = static_cast<float>(Window::GetLogicalWidth());
+    const float logicalHeight = static_cast<float>(Window::GetLogicalHeight());
+    const float mappedX = (s_CurrentMousePosition.x / static_cast<float>(windowWidth)) * logicalWidth;
+    const float mappedY = (s_CurrentMousePosition.y / static_cast<float>(windowHeight)) * logicalHeight;
+
+    return Vec2(std::round(mappedX), std::round(mappedY));
 }
 
 Vec2 Input::GetMouseDelta()

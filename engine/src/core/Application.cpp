@@ -2,6 +2,7 @@
 #include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Time.h"
 #include "pixelstorm/core/Window.h"
+#include "pixelstorm/renderer/Font.h"
 #include "pixelstorm/renderer/Camera2D.h"
 #include "pixelstorm/renderer/Renderer.h"
 #include "pixelstorm/renderer/Shader.h"
@@ -15,12 +16,24 @@
 
 #include <glad/glad.h>
 #include <glm/vec4.hpp>
+#include <cmath>
 #include <memory>
+
+namespace
+{
+    constexpr float FontOversampleFactor = 4.0f;
+
+    std::string BuildFontKey(const std::string &name, float pixelHeight)
+    {
+        return name + "@" + std::to_string(static_cast<int>(std::lround(pixelHeight)));
+    }
+}
 
 Application::Application(int width, int height, const char *title)
     : m_World(m_Registry),
       m_SceneManager(m_World),
-      m_DebugDrawColliders(false)
+      m_DebugDrawColliders(false),
+      m_DefaultFontScale(1.0f)
 {
     // Initializes the application
     Init(width, height, title);
@@ -59,6 +72,76 @@ bool Application::LoadTexture(const std::string &name, const std::string &assetP
     }
 
     return loaded;
+}
+
+bool Application::LoadFont(const std::string &name, const std::string &assetPath, float pixelHeight)
+{
+    // Rejects invalid resource manager state
+    if (!m_ResourceManager)
+    {
+        Log::Error("Cannot load font without a valid resource manager.");
+        return false;
+    }
+
+    // Loads font by logical name
+    const bool loaded = m_ResourceManager->LoadFont(name, assetPath, pixelHeight);
+    if (loaded)
+    {
+        if (m_DefaultFontName.empty())
+        {
+            m_DefaultFontName = name;
+        }
+
+        Log::Info("Font registered: " + name + " <- " + assetPath);
+    }
+    else
+    {
+        Log::Warning("Font could not be loaded: " + name + " <- " + assetPath);
+    }
+
+    return loaded;
+}
+
+bool Application::SetFont(const std::string &name, float pixelHeight)
+{
+    // Loads the font from the default fonts folder using a shader-like API
+    const std::string fontPath = std::string("assets/fonts/") + name;
+    const std::string fontKey = BuildFontKey(name, pixelHeight);
+    const float bakedPixelHeight = pixelHeight * FontOversampleFactor;
+
+    if (!LoadFont(fontKey, fontPath, bakedPixelHeight))
+    {
+        return false;
+    }
+
+    // Makes the loaded font the default one used by UI::Print
+    m_DefaultFontScale = pixelHeight / bakedPixelHeight;
+    return SetDefaultFont(fontKey);
+}
+
+bool Application::SetDefaultFont(const std::string &name)
+{
+    // Only accepts fonts already registered in the resource manager
+    if (!m_ResourceManager || !m_ResourceManager->HasFont(name))
+    {
+        Log::Warning("Cannot set default font. Font not found: " + name);
+        return false;
+    }
+
+    m_DefaultFontName = name;
+    Log::Info("Default font set: " + name);
+    return true;
+}
+
+void Application::DrawText(const std::string &text, const Vec2 &position, const Color &color, float scale)
+{
+    if (text.empty())
+    {
+        return;
+    }
+
+    // Stores text for the current frame so it can be drawn after the world
+    m_TextQueue.push_back({text, position, color, scale});
 }
 
 void Application::SetGravity(const Vec2 &gravity)
@@ -171,6 +254,9 @@ void Application::Run()
             {
                 m_RenderSystem->Render(m_Registry, *m_ResourceManager, *m_Renderer, *shaderToUse, m_Texture.get(), m_DebugDrawColliders);
             }
+
+            // Draws queued text overlays using the default font
+            RenderQueuedText(*shaderToUse);
         }
 
         // Updates window
@@ -222,6 +308,9 @@ void Application::Init(int width, int height, const char *title)
     m_Texture = std::make_unique<Texture>();
     m_ResourceManager = std::make_unique<ResourceManager>();
 
+    // Loads the default UI font so text works out of the box
+    SetFont("PixelStormMini.ttf", 16.0f);
+
     // Sets default shaders (can be overwritten)
     m_DefaultShader = std::make_unique<Shader>("default");
     m_EntityShader.reset();
@@ -248,6 +337,9 @@ void Application::Shutdown()
     m_EntityShader.reset();
     m_DefaultShader.reset();
     m_Window.reset();
+    m_TextQueue.clear();
+    m_DefaultFontName.clear();
+    m_DefaultFontScale = 1.0f;
 
     // Shuts down logger
     Log::Shutdown();
@@ -288,4 +380,32 @@ const SceneManager& Application::GetScenes() const
 {
     // Returns scene manager
     return m_SceneManager;
+}
+
+void Application::RenderQueuedText(Shader &shader)
+{
+    if (!m_Renderer || !m_ResourceManager || m_DefaultFontName.empty() || m_TextQueue.empty())
+    {
+        m_TextQueue.clear();
+        return;
+    }
+
+    // Resolves the active font once and reuses it for every queued command
+    Font *font = m_ResourceManager->GetFont(m_DefaultFontName);
+    if (!font)
+    {
+        m_TextQueue.clear();
+        return;
+    }
+
+    shader.Use();
+    shader.SetInt("u_Texture", 0);
+
+    for (const TextCommand &command : m_TextQueue)
+    {
+        // Draws each queued string with the shared font atlas
+        m_Renderer->DrawText(shader, *font, command.Position, command.Text, command.Tint, command.Scale * m_DefaultFontScale);
+    }
+
+    m_TextQueue.clear();
 }

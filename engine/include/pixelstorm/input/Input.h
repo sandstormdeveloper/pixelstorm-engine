@@ -67,25 +67,25 @@ public:
     static bool IsMouseButtonDown(MouseButton button);         // Returns if mouse button is currently held
     static bool IsMouseButtonJustPressed(MouseButton button);  // Returns if mouse button was pressed this frame
     static bool IsMouseButtonJustReleased(MouseButton button); // Returns if mouse button was released this frame
-    static Vec2 GetMousePosition();                            // Returns mouse position in window space
+    static Vec2 GetMousePosition();                            // Returns mouse position in logical screen space
     static Vec2 GetMouseDelta();                               // Returns mouse movement since last frame
 
-    static void ClearAction(const std::string &actionName);               // Removes all bindings from action
-    static void AddActionBinding(const std::string &actionName, Key key); // Adds key to named action
+    static void ClearAction(const std::string &actionName);                  // Removes all bindings from action
+    static void AddActionBinding(const std::string &actionName, Key key);    // Adds key to named action
     static void RemoveActionBinding(const std::string &actionName, Key key); // Removes key from named action
-    static bool IsActionDown(const std::string &actionName);              // Returns if action is currently held
-    static bool IsActionJustPressed(const std::string &actionName);       // Returns if action was pressed this frame
-    static bool IsActionJustReleased(const std::string &actionName);      // Returns if action was released this frame
+    static bool IsActionDown(const std::string &actionName);                 // Returns if action is currently held
+    static bool IsActionJustPressed(const std::string &actionName);          // Returns if action was pressed this frame
+    static bool IsActionJustReleased(const std::string &actionName);         // Returns if action was released this frame
 
-    static void ClearAxis(const std::string &axisName);                                        // Removes all 1D axis bindings
-    static void AddAxisBinding(const std::string &axisName, Key negativeKey, Key positiveKey); // Adds key pair to named 1D axis
+    static void ClearAxis(const std::string &axisName);                                           // Removes all 1D axis bindings
+    static void AddAxisBinding(const std::string &axisName, Key negativeKey, Key positiveKey);    // Adds key pair to named 1D axis
     static void RemoveAxisBinding(const std::string &axisName, Key negativeKey, Key positiveKey); // Removes key pair from named 1D axis
-    static float GetAxis(const std::string &axisName);                                         // Returns named 1D axis value
+    static float GetAxis(const std::string &axisName);                                            // Returns named 1D axis value
 
-    static void ClearAxis2D(const std::string &axisName);                                                         // Removes all 2D axis bindings
-    static void AddAxis2DBinding(const std::string &axisName, Key leftKey, Key rightKey, Key upKey, Key downKey); // Adds key set to named 2D axis
+    static void ClearAxis2D(const std::string &axisName);                                                            // Removes all 2D axis bindings
+    static void AddAxis2DBinding(const std::string &axisName, Key leftKey, Key rightKey, Key upKey, Key downKey);    // Adds key set to named 2D axis
     static void RemoveAxis2DBinding(const std::string &axisName, Key leftKey, Key rightKey, Key upKey, Key downKey); // Removes key set from named 2D axis
-    static Vec2 GetAxis2D(const std::string &axisName = "move");                                                  // Returns named 2D axis value
+    static Vec2 GetAxis2D(const std::string &axisName = "move");                                                     // Returns named 2D axis value
 
 private:
     struct AxisBinding
@@ -105,16 +105,16 @@ private:
     static constexpr int MaxTrackedKeys = 512;
     static constexpr int MaxTrackedMouseButtons = 8;
 
-    static int ToKeyIndex(Key key);                                                         // Converts key to tracked index
-    static int ToMouseButtonIndex(MouseButton button);                                      // Converts mouse button to tracked index
-    static bool IsValidKeyIndex(int key);                                                   // Returns if key index is valid
-    static bool IsValidMouseButtonIndex(int button);                                        // Returns if mouse button index is valid
-    static bool ReadKeyState(int key);                                                      // Reads key state from GLFW
-    static bool ReadMouseButtonState(int button);                                           // Reads mouse button state from GLFW
-    static void RegisterDefaultBindings();                                                  // Registers built-in bindings
-    static bool AnyActionKeyMatches(const std::string &actionName, bool (*predicate)(Key)); // Checks if any action key matches
-    static bool HasActionBinding(const std::string &actionName, Key key);                   // Returns if action already contains key
-    static bool HasAxisBinding(const std::string &axisName, Key negativeKey, Key positiveKey); // Returns if 1D axis already contains key pair
+    static int ToKeyIndex(Key key);                                                                               // Converts key to tracked index
+    static int ToMouseButtonIndex(MouseButton button);                                                            // Converts mouse button to tracked index
+    static bool IsValidKeyIndex(int key);                                                                         // Returns if key index is valid
+    static bool IsValidMouseButtonIndex(int button);                                                              // Returns if mouse button index is valid
+    static bool ReadKeyState(int key);                                                                            // Reads key state from GLFW
+    static bool ReadMouseButtonState(int button);                                                                 // Reads mouse button state from GLFW
+    static void RegisterDefaultBindings();                                                                        // Registers built-in bindings
+    static bool AnyActionKeyMatches(const std::string &actionName, bool (*predicate)(Key));                       // Checks if any action key matches
+    static bool HasActionBinding(const std::string &actionName, Key key);                                         // Returns if action already contains key
+    static bool HasAxisBinding(const std::string &axisName, Key negativeKey, Key positiveKey);                    // Returns if 1D axis already contains key pair
     static bool HasAxis2DBinding(const std::string &axisName, Key leftKey, Key rightKey, Key upKey, Key downKey); // Returns if 2D axis already contains key set
 
     static GLFWwindow *s_Window;                                                         // Window used by input

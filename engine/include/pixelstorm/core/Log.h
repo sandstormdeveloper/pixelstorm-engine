@@ -13,7 +13,7 @@ class World;
 class Log
 {
 public:
-    static void Debug(const std::string &message);   // Debug message for gameplay or engine diagnostics
+    static void Debug(const std::string &message); // Debug message for gameplay or engine diagnostics
 
 private:
     friend class Application;
@@ -22,6 +22,7 @@ private:
     friend class Registry;
     friend class Shader;
     friend class Texture;
+    friend class Font;
     friend class Window;
     friend class World;
 

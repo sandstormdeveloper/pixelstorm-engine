@@ -8,12 +8,16 @@ int main()
 
     app.LoadTexture("player_run", "assets/player_run.png");
     app.LoadTexture("wall", "assets/wall.png");
+    app.SetFont("PixelStormMini.ttf", 16.0f);
+    UI::Bind(app);
 
     app.GetScenes().AddScene("game", std::make_unique<GameScene>());
     app.GetScenes().AddScene("second", std::make_unique<SecondScene>());
     app.GetScenes().ChangeScene("game");
 
     app.Run();
+
+    UI::Unbind();
 
     return 0;
 }

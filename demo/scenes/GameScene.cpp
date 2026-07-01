@@ -118,6 +118,9 @@ void GameScene::OnUpdate(float deltaTime)
         return;
     }
 
+    // Shows a small overlay using the shared UI helper
+    UI::Print("Press Interact to change scene", Vec2(16.0f, 16.0f), Colors::White(), 1.0f);
+
     // Keeps the particle helper attached to the player while the actor exists
     m_PlayerEmitter.Transform().SetPosition(m_Player.Transform().GetPosition());
 

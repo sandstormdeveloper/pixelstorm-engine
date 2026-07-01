@@ -19,6 +19,7 @@ target_include_directories(pixelstorm_engine PUBLIC
     ${PROJECT_SOURCE_DIR}/external
     ${PROJECT_SOURCE_DIR}/external/glad/include
     ${PROJECT_SOURCE_DIR}/external/glfw/include
+    ${PROJECT_SOURCE_DIR}/external/glfw/deps
     ${PROJECT_SOURCE_DIR}/external/glm
 )
 
