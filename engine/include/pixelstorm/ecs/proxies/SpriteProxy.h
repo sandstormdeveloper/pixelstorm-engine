@@ -43,6 +43,49 @@ public:
         m_Sprite.TextureName.clear();
     }
 
+    bool IsFlippedX() const
+    {
+        // Returns whether the sprite is flipped horizontally
+        return m_Sprite.FlipX;
+    }
+
+    void SetFlippedX(bool flipped)
+    {
+        // Updates the horizontal flip state
+        m_Sprite.FlipX = flipped;
+    }
+
+    void FlipX(bool flipped = true)
+    {
+        // Convenience helper for horizontal flips
+        m_Sprite.FlipX = flipped;
+    }
+
+    bool IsFlippedY() const
+    {
+        // Returns whether the sprite is flipped vertically
+        return m_Sprite.FlipY;
+    }
+
+    void SetFlippedY(bool flipped)
+    {
+        // Updates the vertical flip state
+        m_Sprite.FlipY = flipped;
+    }
+
+    void FlipY(bool flipped = true)
+    {
+        // Convenience helper for vertical flips
+        m_Sprite.FlipY = flipped;
+    }
+
+    void SetFlip(bool flippedX, bool flippedY)
+    {
+        // Updates both flip axes at once
+        m_Sprite.FlipX = flippedX;
+        m_Sprite.FlipY = flippedY;
+    }
+
     bool IsVisible() const
     {
         // Returns sprite visibility

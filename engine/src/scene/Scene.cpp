@@ -1,5 +1,6 @@
 #include "pixelstorm/scene/Scene.h"
 
+#include "pixelstorm/core/Application.h"
 #include "pixelstorm/scene/SceneManager.h"
 #include "pixelstorm/systems/PhysicsSystem.h"
 
@@ -67,15 +68,36 @@ const PhysicsSystem &Scene::GetPhysicsSystem() const
     return *m_PhysicsSystem;
 }
 
+Application &Scene::GetApplication()
+{
+    if (!m_Application)
+    {
+        throw std::runtime_error("Scene is not connected to an Application.");
+    }
+
+    return *m_Application;
+}
+
+const Application &Scene::GetApplication() const
+{
+    if (!m_Application)
+    {
+        throw std::runtime_error("Scene is not connected to an Application.");
+    }
+
+    return *m_Application;
+}
+
 bool Scene::ChangeScene(const std::string &sceneName)
 {
     return GetScenes().ChangeScene(sceneName);
 }
 
-void Scene::SetContext(World &world, SceneManager &scenes, PhysicsSystem *physicsSystem)
+void Scene::SetContext(World &world, SceneManager &scenes, PhysicsSystem *physicsSystem, Application *application)
 {
     // Stores the engine services that the scene can use during callbacks
     m_World = &world;
     m_Scenes = &scenes;
     m_PhysicsSystem = physicsSystem;
+    m_Application = application;
 }

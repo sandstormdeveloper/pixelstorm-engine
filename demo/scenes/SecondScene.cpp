@@ -20,6 +20,9 @@ void SecondScene::OnEnter()
     m_Player.Rigidbody().SetVelocity(Vec2(90.0f, 0.0f));
     m_Player.Sprite().SetRenderOrder(100);
 
+    // Keeps the main camera centered on the moving actor while this scene is active
+    GetApplication().FollowCamera(m_Player);
+
     // Gives the moving actor a lightweight burst emitter for trigger feedback
     m_PlayerEmitter = GetWorld().CreateParticleEmitter(
         "TriggerTesterParticles",
@@ -96,4 +99,5 @@ void SecondScene::OnUpdate(float deltaTime)
 void SecondScene::OnExit()
 {
     Log::Debug("Leaving SecondScene");
+    GetApplication().StopCameraFollow();
 }

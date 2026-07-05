@@ -12,6 +12,8 @@ struct SpriteRenderer
     bool Visible;            // Whether the sprite should be drawn
     int RenderOrder;         // Draw order inside the current scene
     glm::ivec4 SourceRect;   // Optional texture region in pixels: x, y, width, height
+    bool FlipX;              // Flips the sprite horizontally when enabled
+    bool FlipY;              // Flips the sprite vertically when enabled
 
     SpriteRenderer();
     explicit SpriteRenderer(const glm::vec4 &color, bool visible = true);

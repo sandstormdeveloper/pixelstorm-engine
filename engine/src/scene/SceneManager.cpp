@@ -1,11 +1,13 @@
 #include "pixelstorm/scene/SceneManager.h"
 
+#include "pixelstorm/core/Application.h"
 #include "pixelstorm/ecs/World.h"
 #include "pixelstorm/systems/PhysicsSystem.h"
 
 SceneManager::SceneManager()
     : m_World(nullptr),
       m_PhysicsSystem(nullptr),
+      m_Application(nullptr),
       m_ActiveScene(nullptr)
 {
 }
@@ -13,6 +15,7 @@ SceneManager::SceneManager()
 SceneManager::SceneManager(World &world)
     : m_World(&world),
       m_PhysicsSystem(nullptr),
+      m_Application(nullptr),
       m_ActiveScene(nullptr)
 {
 }
@@ -32,6 +35,17 @@ void SceneManager::SetPhysicsSystem(PhysicsSystem &physicsSystem)
 {
     // Rebinds all registered scenes to the physics system
     m_PhysicsSystem = &physicsSystem;
+
+    for (std::pair<const std::string, std::unique_ptr<Scene>> &sceneEntry : m_Scenes)
+    {
+        BindScene(*sceneEntry.second);
+    }
+}
+
+void SceneManager::SetApplication(Application &application)
+{
+    // Rebinds all registered scenes to the current application
+    m_Application = &application;
 
     for (std::pair<const std::string, std::unique_ptr<Scene>> &sceneEntry : m_Scenes)
     {
@@ -147,5 +161,5 @@ const std::string &SceneManager::GetActiveSceneName() const
 void SceneManager::BindScene(Scene &scene)
 {
     // Connects the scene to the current engine context
-    scene.SetContext(*m_World, *this, m_PhysicsSystem);
+    scene.SetContext(*m_World, *this, m_PhysicsSystem, m_Application);
 }

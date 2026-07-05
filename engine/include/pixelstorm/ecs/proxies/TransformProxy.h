@@ -41,6 +41,24 @@ public:
         m_Transform.Scale = scale;
     }
 
+    Vec2 GetPivot() const
+    {
+        // Returns transform pivot
+        return m_Transform.Pivot;
+    }
+
+    void SetPivot(const Vec2 &pivot)
+    {
+        // Updates transform pivot
+        m_Transform.Pivot = pivot;
+    }
+
+    void TranslatePivot(const Vec2 &offset)
+    {
+        // Moves transform pivot in local space
+        m_Transform.Pivot += offset;
+    }
+
     float GetRotation() const
     {
         // Returns transform rotation

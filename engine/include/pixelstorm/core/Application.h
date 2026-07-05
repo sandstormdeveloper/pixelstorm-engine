@@ -29,17 +29,25 @@ public:
     Application(int width, int height, const char *title);
     ~Application();
 
-    void Run();                                                                                                             // Game loop
-    void SetDefaultShader(const std::string &name);                                                                         // Sets default shader used
-    bool LoadTexture(const std::string &name, const std::string &assetPath);                                                // Loads texture from runtime assets path
-    bool LoadFont(const std::string &name, const std::string &assetPath, float pixelHeight);                                // Loads font from runtime assets path
-    bool SetFont(const std::string &name, float pixelHeight);                                                               // Loads a font from the default fonts folder and sets it as current
-    bool SetDefaultFont(const std::string &name);                                                                           // Sets default font used for DrawText
-    void DrawText(const std::string &text, const Vec2 &position, const Color &color = Colors::White(), float scale = 1.0f); // Queues text for the current frame
-    void SetGravity(const Vec2 &gravity);                                                                                   // Sets physics world gravity
-    Vec2 GetGravity() const;                                                                                                // Returns physics world gravity
-    void SetDebugDrawColliders(bool enabled);                                                                               // Enables or disables collider debug rendering
-    bool IsDebugDrawCollidersEnabled() const;                                                                               // Returns collider debug rendering state
+    void Run();                                                                                                                                       // Game loop
+    void SetDefaultShader(const std::string &name);                                                                                                   // Sets default shader used
+    bool LoadTexture(const std::string &name, const std::string &assetPath);                                                                          // Loads texture from runtime assets path
+    bool LoadFont(const std::string &name, const std::string &assetPath, float pixelHeight);                                                          // Loads font from runtime assets path
+    bool SetFont(const std::string &name, float pixelHeight);                                                                                         // Loads a font from the default fonts folder and sets it as current
+    bool SetDefaultFont(const std::string &name);                                                                                                     // Sets default font used for DrawText
+    void DrawText(const std::string &text, const Vec2 &position, const Color &color = Colors::White(), float scale = 1.0f, bool followCamera = true); // Queues text for the current frame
+    void SetGravity(const Vec2 &gravity);                                                                                                             // Sets physics world gravity
+    Vec2 GetGravity() const;                                                                                                                          // Returns physics world gravity
+    void SetDebugDrawColliders(bool enabled);                                                                                                         // Enables or disables collider debug rendering
+    bool IsDebugDrawCollidersEnabled() const;                                                                                                         // Returns collider debug rendering state
+    Camera2D &GetCamera();                                                                                                                            // Returns the main 2D camera
+    const Camera2D &GetCamera() const;                                                                                                                // Returns the main 2D camera in read-only mode
+    void SetCameraPosition(const Vec2 &position);                                                                                                     // Moves the main camera in world space
+    void SetCameraRotation(float rotationDegrees);                                                                                                    // Rotates the main camera around the Z axis
+    void SetCameraProjection(float left, float right, float bottom, float top);                                                                       // Updates the main camera projection bounds
+    void FollowCamera(Entity entity, const Vec2 &offset = Vec2(0.0f, 0.0f), bool followRotation = false, float followSpeed = 8.0f);                   // Makes the camera follow an entity
+    void StopCameraFollow();                                                                                                                          // Clears the current camera follow target
+    bool IsCameraFollowing() const;                                                                                                                   // Returns whether the camera is following an entity
 
     void OnUpdate(const std::function<void(float)> &callback); // Passes update function to application
 
@@ -52,6 +60,7 @@ public:
 private:
     void Init(int width, int height, const char *title); // Initializes application
     void Shutdown();                                     // Shuts down application
+    void UpdateCameraFollow();                           // Updates camera tracking before rendering
 
     Shader *GetActiveShader() const;       // Returns active shader
     void RenderQueuedText(Shader &shader); // Draws queued text commands
@@ -68,6 +77,10 @@ private:
     std::unique_ptr<PhysicsSystem> m_PhysicsSystem;     // Physics system
     std::unique_ptr<RenderSystem> m_RenderSystem;       // Render system
     bool m_DebugDrawColliders;                          // Global collider debug flag
+    Entity m_CameraFollowTarget;                        // Entity currently followed by the camera
+    Vec2 m_CameraFollowOffset;                          // Offset applied while following an entity
+    bool m_CameraFollowRotation;                        // Whether the camera copies entity rotation
+    float m_CameraFollowSpeed;                          // How quickly the camera catches up to its target
 
     Registry m_Registry; // Entity registry
     World m_World;       // Public game world handle
@@ -78,10 +91,11 @@ private:
 
     struct TextCommand
     {
-        std::string Text; // Text to draw
-        Vec2 Position;    // Screen position in pixels
-        Color Tint;       // Text color
-        float Scale;      // Text scale multiplier
+        std::string Text;  // Text to draw
+        Vec2 Position;     // Text position in pixels
+        Color Tint;        // Text color
+        float Scale;       // Text scale multiplier
+        bool FollowCamera; // Whether the text should use the camera transform
     };
 
     std::string m_DefaultFontName;        // Default font used by DrawText

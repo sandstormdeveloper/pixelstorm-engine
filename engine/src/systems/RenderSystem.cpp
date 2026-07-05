@@ -66,14 +66,24 @@ void RenderSystem::Render(Registry &registry, ResourceManager &resourceManager, 
         {
             const float textureWidth = static_cast<float>(std::max(texture->GetWidth(), 1));
             const float textureHeight = static_cast<float>(std::max(texture->GetHeight(), 1));
+
+            // Uses the requested sprite region or the full texture if none was set
             const glm::ivec4 sourceRect = (sprite.SourceRect.z > 0 && sprite.SourceRect.w > 0)
                                               ? sprite.SourceRect
                                               : glm::ivec4(0, 0, static_cast<int>(textureWidth), static_cast<int>(textureHeight));
+
+            // Flips the UV rectangle by moving the origin to the opposite edge
+            const float sourceX = sprite.FlipX ? static_cast<float>(sourceRect.x + sourceRect.z) : static_cast<float>(sourceRect.x);
+            const float sourceY = sprite.FlipY ? static_cast<float>(sourceRect.y + sourceRect.w) : static_cast<float>(sourceRect.y);
+            const float sourceWidth = sprite.FlipX ? -static_cast<float>(sourceRect.z) : static_cast<float>(sourceRect.z);
+            const float sourceHeight = sprite.FlipY ? -static_cast<float>(sourceRect.w) : static_cast<float>(sourceRect.w);
+
+            // Normalizes the rectangle for the fragment shader
             const glm::vec4 normalizedSourceRect(
-                static_cast<float>(sourceRect.x) / textureWidth,
-                static_cast<float>(sourceRect.y) / textureHeight,
-                static_cast<float>(sourceRect.z) / textureWidth,
-                static_cast<float>(sourceRect.w) / textureHeight);
+                sourceX / textureWidth,
+                sourceY / textureHeight,
+                sourceWidth / textureWidth,
+                sourceHeight / textureHeight);
 
             texture->Bind();
             shader.SetVec4("u_Color", sprite.Color);

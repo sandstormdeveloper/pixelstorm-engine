@@ -20,6 +20,9 @@ void GameScene::OnEnter()
 
     m_Player.Sprite().SetRenderOrder(100);
 
+    // Keeps the main camera centered on the player while this scene is active
+    GetApplication().FollowCamera(m_Player);
+
     // Gives the player a small burst emitter used for jump and trigger feedback
     m_PlayerEmitter = GetWorld().CreateParticleEmitter(
         "PlayerParticles",
@@ -119,7 +122,7 @@ void GameScene::OnUpdate(float deltaTime)
     }
 
     // Shows a small overlay using the shared UI helper
-    UI::Print("Press Interact to change scene", Vec2(16.0f, 16.0f), Colors::White(), 1.0f);
+    UI::Print("Press Interact to change scene", Vec2(16.0f, 16.0f), Colors::White(), 1.0f, false);
 
     // Keeps the particle helper attached to the player while the actor exists
     m_PlayerEmitter.Transform().SetPosition(m_Player.Transform().GetPosition());
@@ -175,4 +178,5 @@ void GameScene::OnUpdate(float deltaTime)
 void GameScene::OnExit()
 {
     Log::Debug("Leaving GameScene");
+    GetApplication().StopCameraFollow();
 }
