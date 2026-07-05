@@ -5,6 +5,8 @@
 
 int Window::s_LogicalWidth = 0;
 int Window::s_LogicalHeight = 0;
+int Window::s_FramebufferWidth = 0;
+int Window::s_FramebufferHeight = 0;
 
 Window::Window(int width, int height, const char *title)
     : m_Window(nullptr)
@@ -54,8 +56,11 @@ Window::Window(int width, int height, const char *title)
 
     Log::Info("GLAD initialized.");
 
+    // Reads the actual framebuffer size so rendering matches the drawable area
+    glfwGetFramebufferSize(m_Window, &s_FramebufferWidth, &s_FramebufferHeight);
+
     // Defines draw zone
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, s_FramebufferWidth, s_FramebufferHeight);
 }
 
 Window::~Window()
@@ -92,6 +97,8 @@ void Window::FramebufferSizeCallback(GLFWwindow *window, int width, int height)
     (void)window;
     if (width > 0 && height > 0)
     {
+        s_FramebufferWidth = width;
+        s_FramebufferHeight = height;
         glViewport(0, 0, width, height);
         Log::Info("Viewport resized to " + std::to_string(width) + "x" + std::to_string(height) + ".");
     }
@@ -111,4 +118,14 @@ int Window::GetLogicalWidth()
 int Window::GetLogicalHeight()
 {
     return s_LogicalHeight;
+}
+
+int Window::GetFramebufferWidth()
+{
+    return s_FramebufferWidth;
+}
+
+int Window::GetFramebufferHeight()
+{
+    return s_FramebufferHeight;
 }

@@ -103,6 +103,12 @@ bool SceneManager::ChangeScene(const std::string &name)
         m_ActiveScene->OnExit();
     }
 
+    // Clears camera follow so the next scene starts with an independent view by default
+    if (m_Application)
+    {
+        m_Application->ResetCameraTracking();
+    }
+
     // Clears the world so the next scene starts clean
     m_World->Clear();
 

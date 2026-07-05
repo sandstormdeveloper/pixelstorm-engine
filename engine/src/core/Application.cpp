@@ -17,6 +17,8 @@
 
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <cmath>
 #include <memory>
@@ -29,6 +31,56 @@ namespace
     {
         return name + "@" + std::to_string(static_cast<int>(std::lround(pixelHeight)));
     }
+
+    void DestroyFramebuffer(unsigned int &framebuffer, unsigned int &colorTexture)
+    {
+        // Releases the offscreen color target before recreating it
+        if (colorTexture != 0)
+        {
+            glDeleteTextures(1, &colorTexture);
+            colorTexture = 0;
+        }
+
+        // Releases the framebuffer object itself
+        if (framebuffer != 0)
+        {
+            glDeleteFramebuffers(1, &framebuffer);
+            framebuffer = 0;
+        }
+    }
+
+    bool CreateFramebuffer(unsigned int &framebuffer, unsigned int &colorTexture, int width, int height)
+    {
+        if (width <= 0 || height <= 0)
+        {
+            return false;
+        }
+
+        glGenFramebuffers(1, &framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+        glGenTextures(1, &colorTexture);
+        glBindTexture(GL_TEXTURE_2D, colorTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
+
+        const bool complete = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        if (!complete)
+        {
+            DestroyFramebuffer(framebuffer, colorTexture);
+        }
+
+        return complete;
+    }
 }
 
 Application::Application(int width, int height, const char *title)
@@ -39,6 +91,12 @@ Application::Application(int width, int height, const char *title)
       m_CameraFollowOffset(0.0f, 0.0f),
       m_CameraFollowRotation(false),
       m_CameraFollowSpeed(8.0f),
+      m_SnapCameraOnNextFollow(false),
+      m_PostProcessEnabled(true),
+      m_PostProcessFBO(0),
+      m_PostProcessColorTexture(0),
+      m_PostProcessWidth(0),
+      m_PostProcessHeight(0),
       m_DefaultFontScale(1.0f)
 {
     // Initializes the application
@@ -49,12 +107,6 @@ Application::~Application()
 {
     // Shuts down the application
     Shutdown();
-}
-
-void Application::SetDefaultShader(const std::string &name)
-{
-    // Sets the base/default shader
-    m_DefaultShader = std::make_unique<Shader>(name);
 }
 
 bool Application::LoadTexture(const std::string &name, const std::string &assetPath)
@@ -108,23 +160,6 @@ bool Application::LoadFont(const std::string &name, const std::string &assetPath
     return loaded;
 }
 
-bool Application::SetFont(const std::string &name, float pixelHeight)
-{
-    // Loads the font from the default fonts folder using a shader-like API
-    const std::string fontPath = std::string("assets/fonts/") + name;
-    const std::string fontKey = BuildFontKey(name, pixelHeight);
-    const float bakedPixelHeight = pixelHeight * FontOversampleFactor;
-
-    if (!LoadFont(fontKey, fontPath, bakedPixelHeight))
-    {
-        return false;
-    }
-
-    // Makes the loaded font the default one used by UI::Print
-    m_DefaultFontScale = pixelHeight / bakedPixelHeight;
-    return SetDefaultFont(fontKey);
-}
-
 bool Application::SetDefaultFont(const std::string &name)
 {
     // Only accepts fonts already registered in the resource manager
@@ -137,6 +172,19 @@ bool Application::SetDefaultFont(const std::string &name)
     m_DefaultFontName = name;
     Log::Info("Default font set: " + name);
     return true;
+}
+
+void Application::SetPostProcessEnabled(bool enabled)
+{
+    // Stores whether the CRT-style screen pass should run after world rendering
+    m_PostProcessEnabled = enabled;
+    Log::Info(std::string("Postprocess ") + (m_PostProcessEnabled ? "enabled." : "disabled."));
+}
+
+bool Application::IsPostProcessEnabled() const
+{
+    // Returns the current postprocess toggle state
+    return m_PostProcessEnabled;
 }
 
 void Application::DrawText(const std::string &text, const Vec2 &position, const Color &color, float scale, bool followCamera)
@@ -234,6 +282,21 @@ void Application::FollowCamera(Entity entity, const Vec2 &offset, bool followRot
     m_CameraFollowOffset = offset;
     m_CameraFollowRotation = followRotation;
     m_CameraFollowSpeed = followSpeed;
+
+    // A new scene can request an immediate snap on the first follow so the old camera state does not leak through
+    if (m_SnapCameraOnNextFollow && m_Camera && m_CameraFollowTarget.HasComponent<Transform>())
+    {
+        const Transform &transform = m_CameraFollowTarget.GetComponent<Transform>();
+        const Vec2 targetPosition = transform.Position + m_CameraFollowOffset;
+        m_Camera->SetPosition(targetPosition);
+
+        if (m_CameraFollowRotation)
+        {
+            m_Camera->SetRotation(transform.Rotation);
+        }
+
+        m_SnapCameraOnNextFollow = false;
+    }
 }
 
 void Application::StopCameraFollow()
@@ -243,6 +306,17 @@ void Application::StopCameraFollow()
     m_CameraFollowOffset = Vec2(0.0f, 0.0f);
     m_CameraFollowRotation = false;
     m_CameraFollowSpeed = 8.0f;
+}
+
+void Application::ResetCameraTracking()
+{
+    // Restores the default camera state and asks the next follow to snap immediately
+    StopCameraFollow();
+    SetCameraPosition(Vec2(
+        static_cast<float>(Window::GetLogicalWidth()) * 0.5f,
+        static_cast<float>(Window::GetLogicalHeight()) * 0.5f));
+    SetCameraRotation(0.0f);
+    m_SnapCameraOnNextFollow = true;
 }
 
 bool Application::IsCameraFollowing() const
@@ -301,14 +375,26 @@ void Application::Run()
         // Frees entities destroyed by physics or triggers before rendering
         m_Registry.FlushDestroyedEntities();
 
-        // Clears screen with background color
+        // Keeps the offscreen scene buffer aligned with the current framebuffer size
+        const int framebufferWidth = Window::GetFramebufferWidth() > 0 ? Window::GetFramebufferWidth() : 1;
+        const int framebufferHeight = Window::GetFramebufferHeight() > 0 ? Window::GetFramebufferHeight() : 1;
+        if (m_PostProcessEnabled)
+        {
+            EnsurePostProcessTarget(framebufferWidth, framebufferHeight);
+        }
+        const bool postProcessTargetReady = m_PostProcessFBO != 0 && m_PostProcessColorTexture != 0 && m_PostProcessWidth > 0 && m_PostProcessHeight > 0;
+        const bool renderToPostProcess = m_PostProcessEnabled && postProcessTargetReady;
+
+        // Decides shader to use for the world and UI pass
+        Shader *shaderToUse = GetActiveShader();
+
+        // Renders the scene to the offscreen target so the final pass can add CRT effects
+        glBindFramebuffer(GL_FRAMEBUFFER, renderToPostProcess ? m_PostProcessFBO : 0);
+        glViewport(0, 0, renderToPostProcess ? m_PostProcessWidth : framebufferWidth, renderToPostProcess ? m_PostProcessHeight : framebufferHeight);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Decides shader to use
-        Shader *shaderToUse = GetActiveShader();
-
-        // Activates shader (if it exists)
+        // Activates shader if one is available
         if (shaderToUse)
         {
             shaderToUse->Use();
@@ -335,6 +421,13 @@ void Application::Run()
 
             // Draws queued text overlays using the default font
             RenderQueuedText(*shaderToUse);
+        }
+
+        // Returns to the default framebuffer for the final screen pass
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if (renderToPostProcess)
+        {
+            RenderPostProcess();
         }
 
         // Updates window
@@ -381,6 +474,7 @@ void Application::Init(int width, int height, const char *title)
         static_cast<float>(width) * 0.5f,
         static_cast<float>(height) * 0.5f,
         -static_cast<float>(height) * 0.5f);
+    m_Camera->SetPosition(Vec2(static_cast<float>(width) * 0.5f, static_cast<float>(height) * 0.5f));
     Log::Info("Main 2D camera created.");
 
     // Creates texture
@@ -388,11 +482,27 @@ void Application::Init(int width, int height, const char *title)
     m_ResourceManager = std::make_unique<ResourceManager>();
 
     // Loads the default UI font so text works out of the box
-    SetFont("PixelStormMini.ttf", 16.0f);
+    const std::string defaultFontName = "PixelStormMini.ttf";
+    const std::string defaultFontPath = std::string("assets/fonts/") + defaultFontName;
+    const float defaultFontSize = 16.0f;
+    const std::string defaultFontKey = BuildFontKey(defaultFontName, defaultFontSize);
+    const float defaultBakedFontSize = defaultFontSize * FontOversampleFactor;
+
+    if (LoadFont(defaultFontKey, defaultFontPath, defaultBakedFontSize))
+    {
+        m_DefaultFontScale = defaultFontSize / defaultBakedFontSize;
+        SetDefaultFont(defaultFontKey);
+    }
+    else
+    {
+        Log::Warning("Default UI font could not be loaded.");
+    }
 
     // Sets default shaders (can be overwritten)
     m_DefaultShader = std::make_unique<Shader>("default");
     m_EntityShader.reset();
+    m_PostProcessShader = std::make_unique<Shader>("crt");
+    EnsurePostProcessTarget(Window::GetFramebufferWidth(), Window::GetFramebufferHeight());
     Log::Info("Default rendering resources created.");
 }
 
@@ -413,6 +523,8 @@ void Application::Shutdown()
     m_PhysicsSystem.reset();
     m_Camera.reset();
     m_Renderer.reset();
+    m_PostProcessShader.reset();
+    DestroyPostProcessTarget();
     m_EntityShader.reset();
     m_DefaultShader.reset();
     m_Window.reset();
@@ -508,6 +620,71 @@ void Application::UpdateCameraFollow()
             m_Camera->SetRotation(currentRotation + (transform.Rotation - currentRotation) * followFactor);
         }
     }
+}
+
+void Application::EnsurePostProcessTarget(int width, int height)
+{
+    // Normalizes invalid sizes so the framebuffer always has a usable target
+    if (width <= 0 || height <= 0)
+    {
+        width = 1;
+        height = 1;
+    }
+
+    // Keeps the current target if it already matches the active framebuffer size
+    if (m_PostProcessFBO != 0 && m_PostProcessWidth == width && m_PostProcessHeight == height)
+    {
+        return;
+    }
+
+    // Recreates the offscreen buffer when the window framebuffer changes size
+    DestroyPostProcessTarget();
+    m_PostProcessWidth = width;
+    m_PostProcessHeight = height;
+
+    if (!CreateFramebuffer(m_PostProcessFBO, m_PostProcessColorTexture, width, height))
+    {
+        m_PostProcessWidth = 0;
+        m_PostProcessHeight = 0;
+        Log::Error("Failed to create the postprocess framebuffer.");
+    }
+    else
+    {
+        Log::Info("Postprocess framebuffer created at " + std::to_string(width) + "x" + std::to_string(height) + ".");
+    }
+}
+
+void Application::DestroyPostProcessTarget()
+{
+    // Releases the offscreen scene target if one exists
+    DestroyFramebuffer(m_PostProcessFBO, m_PostProcessColorTexture);
+    m_PostProcessWidth = 0;
+    m_PostProcessHeight = 0;
+}
+
+void Application::RenderPostProcess()
+{
+    if (!m_PostProcessEnabled || !m_Renderer || !m_PostProcessShader || m_PostProcessColorTexture == 0 || m_PostProcessWidth <= 0 || m_PostProcessHeight <= 0)
+    {
+        // Falls back to a plain swap if the postprocess resources are not ready
+        return;
+    }
+
+    // Restores the framebuffer viewport for the final full-screen pass
+    glViewport(0, 0, m_PostProcessWidth, m_PostProcessHeight);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    m_PostProcessShader->Use();
+    m_PostProcessShader->SetInt("u_Texture", 0);
+    m_PostProcessShader->SetFloat("u_Time", static_cast<float>(Time::GetElapsedTime()));
+    m_PostProcessShader->SetMat4("u_ViewProjection", glm::mat4(1.0f));
+
+    // Draws the offscreen scene texture over the whole screen with the CRT pass
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_PostProcessColorTexture);
+    const glm::mat4 fullScreenModel = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 1.0f));
+    m_Renderer->DrawQuad(*m_PostProcessShader, fullScreenModel);
 }
 
 void Application::RenderQueuedText(Shader &shader)

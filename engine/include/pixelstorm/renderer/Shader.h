@@ -11,6 +11,7 @@ public:
 
     void Use();                                                          // Activates shader
     void SetInt(const std::string &name, int value) const;               // Specifies value of uniform variable
+    void SetFloat(const std::string &name, float value) const;           // Specifies value of float uniform variable
     void SetMat4(const std::string &name, const glm::mat4 &value) const; // Specifies value of mat4 uniform
     void SetVec4(const std::string &name, const glm::vec4 &value) const; // Specifies value of vec4 uniform
 

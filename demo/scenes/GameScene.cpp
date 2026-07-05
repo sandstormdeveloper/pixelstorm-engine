@@ -178,5 +178,4 @@ void GameScene::OnUpdate(float deltaTime)
 void GameScene::OnExit()
 {
     Log::Debug("Leaving GameScene");
-    GetApplication().StopCameraFollow();
 }

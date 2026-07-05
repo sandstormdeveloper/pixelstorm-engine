@@ -30,11 +30,11 @@ public:
     ~Application();
 
     void Run();                                                                                                                                       // Game loop
-    void SetDefaultShader(const std::string &name);                                                                                                   // Sets default shader used
     bool LoadTexture(const std::string &name, const std::string &assetPath);                                                                          // Loads texture from runtime assets path
     bool LoadFont(const std::string &name, const std::string &assetPath, float pixelHeight);                                                          // Loads font from runtime assets path
-    bool SetFont(const std::string &name, float pixelHeight);                                                                                         // Loads a font from the default fonts folder and sets it as current
     bool SetDefaultFont(const std::string &name);                                                                                                     // Sets default font used for DrawText
+    void SetPostProcessEnabled(bool enabled);                                                                                                         // Enables or disables the CRT-style postprocess pass
+    bool IsPostProcessEnabled() const;                                                                                                                // Returns whether the CRT-style postprocess pass is enabled
     void DrawText(const std::string &text, const Vec2 &position, const Color &color = Colors::White(), float scale = 1.0f, bool followCamera = true); // Queues text for the current frame
     void SetGravity(const Vec2 &gravity);                                                                                                             // Sets physics world gravity
     Vec2 GetGravity() const;                                                                                                                          // Returns physics world gravity
@@ -48,6 +48,7 @@ public:
     void FollowCamera(Entity entity, const Vec2 &offset = Vec2(0.0f, 0.0f), bool followRotation = false, float followSpeed = 8.0f);                   // Makes the camera follow an entity
     void StopCameraFollow();                                                                                                                          // Clears the current camera follow target
     bool IsCameraFollowing() const;                                                                                                                   // Returns whether the camera is following an entity
+    void ResetCameraTracking();                                                                                                                       // Clears camera follow and restores the default scene camera state
 
     void OnUpdate(const std::function<void(float)> &callback); // Passes update function to application
 
@@ -61,6 +62,9 @@ private:
     void Init(int width, int height, const char *title); // Initializes application
     void Shutdown();                                     // Shuts down application
     void UpdateCameraFollow();                           // Updates camera tracking before rendering
+    void EnsurePostProcessTarget(int width, int height); // Creates or resizes the postprocess framebuffer
+    void DestroyPostProcessTarget();                     // Releases the postprocess framebuffer resources
+    void RenderPostProcess();                            // Draws the final CRT-style screen pass
 
     Shader *GetActiveShader() const;       // Returns active shader
     void RenderQueuedText(Shader &shader); // Draws queued text commands
@@ -70,6 +74,7 @@ private:
     std::unique_ptr<Camera2D> m_Camera;                 // Main 2D camera
     std::unique_ptr<Shader> m_DefaultShader;            // Base shader
     std::unique_ptr<Shader> m_EntityShader;             // Shader for objects
+    std::unique_ptr<Shader> m_PostProcessShader;        // Full-screen postprocess shader
     std::unique_ptr<Texture> m_Texture;                 // Fallback procedural texture
     std::unique_ptr<ResourceManager> m_ResourceManager; // Loaded resources
     std::unique_ptr<AnimationSystem> m_AnimationSystem; // Sprite animation system
@@ -81,6 +86,12 @@ private:
     Vec2 m_CameraFollowOffset;                          // Offset applied while following an entity
     bool m_CameraFollowRotation;                        // Whether the camera copies entity rotation
     float m_CameraFollowSpeed;                          // How quickly the camera catches up to its target
+    bool m_SnapCameraOnNextFollow;                      // Whether the next camera follow should snap immediately
+    bool m_PostProcessEnabled;                          // Whether the CRT-style postprocess pass is active
+    unsigned int m_PostProcessFBO;                      // Framebuffer used to render the scene
+    unsigned int m_PostProcessColorTexture;             // Color texture attached to the framebuffer
+    int m_PostProcessWidth;                             // Cached framebuffer width
+    int m_PostProcessHeight;                            // Cached framebuffer height
 
     Registry m_Registry; // Entity registry
     World m_World;       // Public game world handle
