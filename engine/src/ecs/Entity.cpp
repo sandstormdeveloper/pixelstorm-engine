@@ -44,7 +44,7 @@ std::string Entity::GetName() const
     return m_Registry->GetEntityName(*this);
 }
 
-void Entity::Destroy(bool logDestruction)
+void Entity::Destroy(bool logDestruction) const
 {
     // Destroys this entity through the registry if possible
     if (m_Registry)

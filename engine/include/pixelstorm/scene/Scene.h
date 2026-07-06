@@ -18,15 +18,16 @@ public:
     virtual void OnExit() {}                  // Called before the scene stops being active
 
 protected:
-    World &GetWorld();                              // Returns the world used by this scene
-    const World &GetWorld() const;                  // Returns the world in read-only mode
-    SceneManager &GetScenes();                      // Returns the scene manager
-    const SceneManager &GetScenes() const;          // Returns the scene manager in read-only mode
-    PhysicsSystem &GetPhysicsSystem();              // Returns the physics system
-    const PhysicsSystem &GetPhysicsSystem() const;  // Returns the physics system in read-only mode
-    Application &GetApplication();                  // Returns the application used by this scene
-    const Application &GetApplication() const;      // Returns the application in read-only mode
-    bool ChangeScene(const std::string &sceneName); // Requests a scene change
+    World &GetWorld();                                                  // Returns the world used by this scene
+    const World &GetWorld() const;                                      // Returns the world in read-only mode
+    SceneManager &GetScenes();                                          // Returns the scene manager
+    const SceneManager &GetScenes() const;                              // Returns the scene manager in read-only mode
+    PhysicsSystem &GetPhysicsSystem();                                  // Returns the physics system
+    const PhysicsSystem &GetPhysicsSystem() const;                      // Returns the physics system in read-only mode
+    Application &GetApplication();                                      // Returns the application used by this scene
+    const Application &GetApplication() const;                          // Returns the application in read-only mode
+    bool ChangeScene(const std::string &sceneName);                     // Requests a scene change
+    bool ChangeScene(const std::string &sceneName, float delaySeconds); // Requests a scene change after a delay
 
 private:
     void SetContext(World &world, SceneManager &scenes, PhysicsSystem *physicsSystem, Application *application); // Binds the scene to the engine services it can use

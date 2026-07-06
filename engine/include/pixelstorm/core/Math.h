@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <random>
 #include <string>
 #include <vector>
 #include <utility>
@@ -46,6 +48,49 @@ inline float Degrees(float radians)
 inline float Radians(float degrees)
 {
     return degrees * 0.017453292519943295f;
+}
+
+inline std::mt19937 &RandomEngine()
+{
+    // Returns the shared random engine used by the helper functions
+    static std::mt19937 engine{std::random_device{}()};
+    return engine;
+}
+
+inline void SeedRandom(std::uint32_t seed)
+{
+    // Seeds the shared random engine
+    RandomEngine().seed(seed);
+}
+
+inline float RandomFloat(float minValue = 0.0f, float maxValue = 1.0f)
+{
+    // Returns a random float in the requested range
+    std::uniform_real_distribution<float> distribution(minValue, maxValue);
+    return distribution(RandomEngine());
+}
+
+inline int RandomInt(int minValue, int maxValue)
+{
+    // Returns a random integer in the requested range
+    std::uniform_int_distribution<int> distribution(minValue, maxValue);
+    return distribution(RandomEngine());
+}
+
+inline bool RandomChance(float probability)
+{
+    // Returns true with the requested probability in the [0, 1] range
+    if (probability <= 0.0f)
+    {
+        return false;
+    }
+
+    if (probability >= 1.0f)
+    {
+        return true;
+    }
+
+    return RandomFloat(0.0f, 1.0f) < probability;
 }
 
 inline Vec2 Normalize(const Vec2 &value)

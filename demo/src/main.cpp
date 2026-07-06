@@ -8,6 +8,7 @@ int main()
     Application app(640, 360, "PixelStorm");
 
     app.LoadTexture("player", "assets/player.png");
+    app.LoadTexture("enemy", "assets/enemy.png");
     app.LoadTexture("gun", "assets/gun.png");
     app.LoadTexture("bullet", "assets/bullet.png");
     UI::Bind(app);

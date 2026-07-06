@@ -28,16 +28,18 @@ public:
     {
         return AddScene(name, std::make_unique<TScene>(std::forward<TArgs>(args)...));
     }
-    bool HasScene(const std::string &name) const;  // Returns if scene exists
-    bool ChangeScene(const std::string &name);     // Changes the active scene
-    void Update(float deltaTime);                  // Updates active scene
-    void Render();                                 // Renders active scene hook
-    Scene *GetActiveScene();                       // Returns active scene
-    const Scene *GetActiveScene() const;           // Returns active scene in read-only mode
-    const std::string &GetActiveSceneName() const; // Returns active scene name
+    bool HasScene(const std::string &name) const;                  // Returns if scene exists
+    bool ChangeScene(const std::string &name);                     // Changes the active scene
+    bool ChangeScene(const std::string &name, float delaySeconds); // Changes the active scene after a delay
+    void Update(float deltaTime);                                  // Updates active scene
+    void Render();                                                 // Renders active scene hook
+    Scene *GetActiveScene();                                       // Returns active scene
+    const Scene *GetActiveScene() const;                           // Returns active scene in read-only mode
+    const std::string &GetActiveSceneName() const;                 // Returns active scene name
 
 private:
-    void BindScene(Scene &scene); // Connects a scene to the engine context
+    void BindScene(Scene &scene);                 // Connects a scene to the engine context
+    bool ChangeSceneNow(const std::string &name); // Switches to a scene immediately
 
     World *m_World;                                                   // World used by scenes
     PhysicsSystem *m_PhysicsSystem;                                   // Physics system used by scenes
@@ -45,4 +47,7 @@ private:
     std::unordered_map<std::string, std::unique_ptr<Scene>> m_Scenes; // Registered scenes
     std::string m_ActiveSceneName;                                    // Current scene name
     Scene *m_ActiveScene;                                             // Current scene instance
+    std::string m_PendingSceneName;                                   // Scene waiting to be activated
+    float m_PendingSceneDelay;                                        // Delay before switching scenes
+    bool m_HasPendingSceneChange;                                     // Whether a delayed scene change is queued
 };

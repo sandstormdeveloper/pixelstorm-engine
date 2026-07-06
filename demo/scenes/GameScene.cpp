@@ -1,7 +1,40 @@
 #include "GameScene.h"
 
-#include "pixelstorm/core/Time.h"
-#include "pixelstorm/renderer/Camera2D.h"
+Vec2 GameScene::GetEnemySpawnPosition()
+{
+    // Spawns enemies outside the current visible camera area
+    const Vec2 cameraPosition = GetApplication().GetCamera().GetPosition();
+    const float halfWidth = Window::GetLogicalWidth() * 0.5f;
+    const float halfHeight = Window::GetLogicalHeight() * 0.5f;
+    const float spawnMargin = 48.0f;
+
+    const int edge = RandomInt(0, 3);
+    switch (edge)
+    {
+    case 0:
+        return Vec2(cameraPosition.x - halfWidth - spawnMargin, RandomFloat(cameraPosition.y - halfHeight - spawnMargin, cameraPosition.y + halfHeight + spawnMargin));
+    case 1:
+        return Vec2(cameraPosition.x + halfWidth + spawnMargin, RandomFloat(cameraPosition.y - halfHeight - spawnMargin, cameraPosition.y + halfHeight + spawnMargin));
+    case 2:
+        return Vec2(RandomFloat(cameraPosition.x - halfWidth - spawnMargin, cameraPosition.x + halfWidth + spawnMargin), cameraPosition.y - halfHeight - spawnMargin);
+    default:
+        return Vec2(RandomFloat(cameraPosition.x - halfWidth - spawnMargin, cameraPosition.x + halfWidth + spawnMargin), cameraPosition.y + halfHeight + spawnMargin);
+    }
+}
+
+float GameScene::GetEnemySpawnDelay() const
+{
+    // Reduces the spawn delay as the player survives longer
+    const float elapsed = static_cast<float>(Time::GetElapsedTime() - playerSpawnTime);
+    float delay = 2.5f - (elapsed * 0.03f);
+
+    if (delay < 0.45f)
+    {
+        delay = 0.45f;
+    }
+
+    return delay;
+}
 
 void GameScene::CreatePlayer()
 {
@@ -19,6 +52,7 @@ void GameScene::CreatePlayer()
         "idle"
     );
 
+    player.Collider().SetTrigger(true);
     player.Collider().SetSize(Vec2(16.0f, 28.0f));
     player.Collider().SetOffset(Vec2(0.0f, 2.0f));
     player.Sprite().SetRenderOrder(5);
@@ -37,6 +71,28 @@ void GameScene::CreateGun()
 
     gun.Sprite().SetRenderOrder(10);
     gun.Transform().SetPivot(Vec2(-0.5f, 0.0f));
+}
+
+void GameScene::CreateEnemy()
+{
+    // Builds an enemy outside the visible camera area
+    Entity enemy = GetWorld().CreateAnimatedActor(
+        "Enemy",
+        GetEnemySpawnPosition(),
+        Vec2(32.0f, 32.0f),
+        Colors::White(),
+        "enemy",
+        {
+            { "idle", { iVec2(8, 8), 1, 4, 0.0f, true, 0 } },
+            { "walk", { iVec2(8, 8), 4, 4, 10.0f, true, 4 } }
+        },
+        "walk"
+    );
+
+    enemy.Collider().SetSize(Vec2(16.0f, 28.0f));
+    enemy.Collider().SetOffset(Vec2(0.0f, 2.0f));
+    enemy.Sprite().SetRenderOrder(4);
+    Add(enemies, Enemy{ enemy, false });
 }
 
 Vec2 GameScene::GetPlayerPosition()
@@ -76,6 +132,17 @@ void GameScene::UpdatePlayerMovement(const Vec2 &movement)
     player.Rigidbody().SetVelocity(movement * speed);
 }
 
+void GameScene::UpdatePlayerCollision()
+{
+    player.Trigger().SetOnEnter([&](Entity other) {
+        if (other.GetName() == "Enemy")
+        {
+            player.Destroy();
+            gun.Destroy();
+        }
+    });
+}
+
 void GameScene::UpdateGun(const Vec2 &gunPosition, float aimAngleDegrees)
 {
     // Mirrors the weapon position and rotation to match the aim direction
@@ -111,6 +178,14 @@ void GameScene::HandleShooting(const Vec2 &gunPosition, const Vec2 &bulletDirect
     bullet.Collider().SetTrigger(true);
     bullet.Sprite().SetRenderOrder(20);
     bullet.Transform().SetRotation(aimAngleDegrees);
+    bullet.Trigger().SetOnEnter([bullet](Entity other) {
+        if (other.GetName() == "Enemy")
+        {
+            other.Destroy();
+            bullet.Destroy();
+        }
+    });
+
     Add(bullets, Bullet{ bullet, bulletDirection * 360.0f, false });
 }
 
@@ -126,14 +201,6 @@ void GameScene::UpdateBullets(float deltaTime)
 
         bullet.EntityHandle.Transform().Translate(bullet.Velocity * deltaTime);
 
-        bullet.EntityHandle.Trigger().SetOnEnter([&](Entity other)
-        {
-            if (other.GetName() == "Enemy")
-            {
-                other.Destroy();
-            }
-        });
-
         const Vec2 bulletPosition = bullet.EntityHandle.Transform().GetPosition();
         if (GetApplication().IsPositionOutsideCamera(bulletPosition, 32.0f))
         {
@@ -146,6 +213,44 @@ void GameScene::UpdateBullets(float deltaTime)
     RemoveIf(bullets, [](const Bullet &bullet) {
         return bullet.Dead;
     });
+}
+
+void GameScene::UpdateEnemies(float deltaTime)
+{
+    // Moves enemies toward the player and removes invalid ones
+    ForEach(enemies, [&](Enemy &enemy) {
+        if (enemy.Dead || !enemy.EntityHandle.IsValid())
+        {
+            enemy.Dead = true;
+            return;
+        }
+
+        const Vec2 enemyPosition = enemy.EntityHandle.Transform().GetPosition();
+        const Vec2 direction = Normalize(GetPlayerPosition() - enemyPosition);
+        const float enemySpeed = 60.0f;
+
+        enemy.EntityHandle.Rigidbody().SetVelocity(direction * enemySpeed);
+        enemy.EntityHandle.Animation().Play("walk");
+        enemy.EntityHandle.Sprite().FlipX(direction.x < 0.0f);
+    });
+
+    RemoveIf(enemies, [](const Enemy &enemy) {
+        return enemy.Dead;
+    });
+}
+
+void GameScene::UpdateEnemySpawner(float deltaTime)
+{
+    // Spawns more enemies as time passes
+    m_EnemySpawnTimer += deltaTime;
+
+    float spawnDelay = GetEnemySpawnDelay();
+    while (m_EnemySpawnTimer >= spawnDelay)
+    {
+        m_EnemySpawnTimer -= spawnDelay;
+        CreateEnemy();
+        spawnDelay = GetEnemySpawnDelay();
+    }
 }
 
 void GameScene::UpdatePlayerAnimation(const Vec2 &movement)
@@ -181,6 +286,7 @@ void GameScene::OnEnter()
 {
     Log::Debug("Entering GameScene");
     playerSpawnTime = Time::GetElapsedTime();
+    m_EnemySpawnTimer = 0.0f;
 
     CreatePlayer();
     GetApplication().FollowCamera(player);
@@ -191,6 +297,7 @@ void GameScene::OnUpdate(float deltaTime)
 {
     if (!player.IsValid())
     {
+        ChangeScene("gameover", 1.0f);
         return;
     }
 
@@ -204,13 +311,17 @@ void GameScene::OnUpdate(float deltaTime)
 
     HandleShooting(gunPosition, bulletDirection, aimAngleDegrees);
     UpdateGun(gunPosition, aimAngleDegrees);
+    UpdateEnemySpawner(deltaTime);
+    UpdateEnemies(deltaTime);
     UpdateHud();
     UpdateBullets(deltaTime);
     UpdatePlayerAnimation(movement);
+    UpdatePlayerCollision();
 }
 
 void GameScene::OnExit()
 {
     bullets.clear();
+    enemies.clear();
     Log::Debug("Leaving GameScene");
 }

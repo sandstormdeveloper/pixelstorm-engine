@@ -93,6 +93,11 @@ bool Scene::ChangeScene(const std::string &sceneName)
     return GetScenes().ChangeScene(sceneName);
 }
 
+bool Scene::ChangeScene(const std::string &sceneName, float delaySeconds)
+{
+    return GetScenes().ChangeScene(sceneName, delaySeconds);
+}
+
 void Scene::SetContext(World &world, SceneManager &scenes, PhysicsSystem *physicsSystem, Application *application)
 {
     // Stores the engine services that the scene can use during callbacks

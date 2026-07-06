@@ -22,3 +22,6 @@
 #include "pixelstorm/systems/AnimationSystem.h"
 #include "pixelstorm/systems/ParticleSystem.h"
 #include "pixelstorm/systems/PhysicsSystem.h"
+#include "pixelstorm/core/Time.h"
+#include "pixelstorm/core/Window.h"
+#include "pixelstorm/renderer/Camera2D.h"

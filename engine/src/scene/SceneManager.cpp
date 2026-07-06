@@ -8,7 +8,9 @@ SceneManager::SceneManager()
     : m_World(nullptr),
       m_PhysicsSystem(nullptr),
       m_Application(nullptr),
-      m_ActiveScene(nullptr)
+      m_ActiveScene(nullptr),
+      m_PendingSceneDelay(0.0f),
+      m_HasPendingSceneChange(false)
 {
 }
 
@@ -16,7 +18,9 @@ SceneManager::SceneManager(World &world)
     : m_World(&world),
       m_PhysicsSystem(nullptr),
       m_Application(nullptr),
-      m_ActiveScene(nullptr)
+      m_ActiveScene(nullptr),
+      m_PendingSceneDelay(0.0f),
+      m_HasPendingSceneChange(false)
 {
 }
 
@@ -81,6 +85,39 @@ bool SceneManager::HasScene(const std::string &name) const
 
 bool SceneManager::ChangeScene(const std::string &name)
 {
+    m_HasPendingSceneChange = false;
+    m_PendingSceneName.clear();
+    m_PendingSceneDelay = 0.0f;
+
+    return ChangeSceneNow(name);
+}
+
+bool SceneManager::ChangeScene(const std::string &name, float delaySeconds)
+{
+    if (delaySeconds <= 0.0f)
+    {
+        return ChangeScene(name);
+    }
+
+    if (m_HasPendingSceneChange && m_PendingSceneName == name)
+    {
+        return true;
+    }
+
+    if (!HasScene(name) || !m_World)
+    {
+        return false;
+    }
+
+    // Stores the requested scene until the delay expires
+    m_PendingSceneName = name;
+    m_PendingSceneDelay = delaySeconds;
+    m_HasPendingSceneChange = true;
+    return true;
+}
+
+bool SceneManager::ChangeSceneNow(const std::string &name)
+{
     // Looks for the scene by name
     std::unordered_map<std::string, std::unique_ptr<Scene>>::iterator iterator = m_Scenes.find(name);
 
@@ -132,6 +169,23 @@ void SceneManager::Update(float deltaTime)
 
     // Updates the active scene gameplay logic
     m_ActiveScene->OnUpdate(deltaTime);
+
+    if (!m_HasPendingSceneChange)
+    {
+        return;
+    }
+
+    m_PendingSceneDelay -= deltaTime;
+    if (m_PendingSceneDelay > 0.0f)
+    {
+        return;
+    }
+
+    const std::string nextSceneName = m_PendingSceneName;
+    m_HasPendingSceneChange = false;
+    m_PendingSceneName.clear();
+    m_PendingSceneDelay = 0.0f;
+    ChangeSceneNow(nextSceneName);
 }
 
 void SceneManager::Render()
