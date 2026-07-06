@@ -33,6 +33,17 @@ bool Entity::IsValid() const
     return (m_Id != 0 && m_Registry && m_Registry->HasEntity(*this));
 }
 
+std::string Entity::GetName() const
+{
+    // Returns the entity name if one was assigned in the registry
+    if (!m_Registry)
+    {
+        return "";
+    }
+
+    return m_Registry->GetEntityName(*this);
+}
+
 void Entity::Destroy(bool logDestruction)
 {
     // Destroys this entity through the registry if possible

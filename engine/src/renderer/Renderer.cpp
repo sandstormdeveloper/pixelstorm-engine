@@ -5,8 +5,10 @@
 
 #include <glm/ext/matrix_transform.hpp>
 #include <glad/glad.h>
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <limits>
 #include <string>
 
 namespace
@@ -214,4 +216,86 @@ void Renderer::DrawText(const Shader &shader, const Font &font, const glm::vec2 
         DrawQuad(shader, model);
         pen.x = std::round(pen.x + glyph->XAdvance * scale);
     }
+}
+
+glm::vec2 Renderer::MeasureText(const Font &font, const std::string &text, float scale) const
+{
+    if (!font.IsValid() || text.empty())
+    {
+        return glm::vec2(0.0f, 0.0f);
+    }
+
+    const float lineStep = std::round(font.GetLineHeight() * scale);
+    const float ascent = std::round(font.GetAscent() * scale);
+
+    float maxWidth = 0.0f;
+    float blockTop = std::numeric_limits<float>::max();
+    float blockBottom = std::numeric_limits<float>::lowest();
+    bool hasAnyLine = false;
+
+    std::size_t lineIndex = 0;
+    std::size_t i = 0;
+    while (i <= text.size())
+    {
+        float lineWidth = 0.0f;
+        float lineTop = std::numeric_limits<float>::max();
+        float lineBottom = std::numeric_limits<float>::lowest();
+        bool hasGlyph = false;
+
+        while (i < text.size() && text[i] != '\n')
+        {
+            const unsigned int codepoint = DecodeUtf8(text, i);
+
+            if (codepoint == '\r')
+            {
+                continue;
+            }
+
+            const Font::Glyph *glyph = font.FindGlyph(codepoint);
+            if (!glyph)
+            {
+                glyph = font.FindGlyph('?');
+            }
+
+            if (!glyph)
+            {
+                continue;
+            }
+
+            hasGlyph = true;
+            lineWidth = std::round(lineWidth + glyph->XAdvance * scale);
+            lineTop = std::min(lineTop, ascent + glyph->Y0 * scale);
+            lineBottom = std::max(lineBottom, ascent + glyph->Y1 * scale);
+        }
+
+        if (hasGlyph)
+        {
+            hasAnyLine = true;
+            maxWidth = std::max(maxWidth, lineWidth);
+
+            const float offsetY = static_cast<float>(lineIndex) * lineStep;
+            blockTop = std::min(blockTop, offsetY + lineTop);
+            blockBottom = std::max(blockBottom, offsetY + lineBottom);
+        }
+
+        if (i >= text.size())
+        {
+            break;
+        }
+
+        if (text[i] == '\n')
+        {
+            ++i;
+        }
+
+        ++lineIndex;
+    }
+
+    if (!hasAnyLine)
+    {
+        return glm::vec2(0.0f, 0.0f);
+    }
+
+    const float totalHeight = std::max(0.0f, blockBottom - blockTop);
+    return glm::vec2(maxWidth, totalHeight);
 }

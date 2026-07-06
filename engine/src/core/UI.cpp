@@ -16,11 +16,11 @@ void UI::Unbind()
     s_App = nullptr;
 }
 
-void UI::Print(const std::string &text, const Vec2 &position, const Color &color, float scale, bool followCamera)
+void UI::Print(const std::string &text, const Vec2 &position, const Color &color, float scale, bool followCamera, TextAnchor anchor)
 {
     // Forwards text drawing to the application if one is bound
     if (s_App)
     {
-        s_App->DrawText(text, position, color, scale, followCamera);
+        s_App->DrawText(text, position, color, scale, followCamera, anchor);
     }
 }

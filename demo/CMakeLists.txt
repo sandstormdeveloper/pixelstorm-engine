@@ -14,6 +14,8 @@ target_include_directories(pixelstorm_demo PRIVATE
 target_link_libraries(pixelstorm_demo PRIVATE pixelstorm_engine)
 
 add_custom_command(TARGET pixelstorm_demo POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove_directory
+            $<TARGET_FILE_DIR:pixelstorm_demo>/assets
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${PROJECT_SOURCE_DIR}/engine/assets
             $<TARGET_FILE_DIR:pixelstorm_demo>/assets

@@ -10,6 +10,7 @@
 #include "pixelstorm/core/Color.h"
 #include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Math.h"
+#include "pixelstorm/core/Text.h"
 #include "pixelstorm/core/UI.h"
 #include "pixelstorm/core/Time.h"
 #include "pixelstorm/ecs/Entity.h"

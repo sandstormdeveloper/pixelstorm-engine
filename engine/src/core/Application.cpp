@@ -21,6 +21,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <cmath>
+#include <limits>
 #include <memory>
 
 namespace
@@ -187,7 +188,7 @@ bool Application::IsPostProcessEnabled() const
     return m_PostProcessEnabled;
 }
 
-void Application::DrawText(const std::string &text, const Vec2 &position, const Color &color, float scale, bool followCamera)
+void Application::DrawText(const std::string &text, const Vec2 &position, const Color &color, float scale, bool followCamera, TextAnchor anchor)
 {
     if (text.empty())
     {
@@ -195,7 +196,7 @@ void Application::DrawText(const std::string &text, const Vec2 &position, const 
     }
 
     // Stores text for the current frame so it can be drawn after the world
-    m_TextQueue.push_back({text, position, color, scale, followCamera});
+    m_TextQueue.push_back({text, position, color, scale, followCamera, anchor});
 }
 
 void Application::SetGravity(const Vec2 &gravity)
@@ -323,6 +324,32 @@ bool Application::IsCameraFollowing() const
 {
     // Returns whether a valid entity is driving the camera
     return m_CameraFollowTarget.IsValid();
+}
+
+bool Application::IsPositionOutsideCamera(const Vec2 &position, float margin) const
+{
+    // Returns false if no camera is available yet
+    if (!m_Camera)
+    {
+        return false;
+    }
+
+    // Transforms the world position into clip space using the active camera
+    const glm::vec4 clipPosition = m_Camera->GetViewProjectionMatrix() * glm::vec4(position, 0.0f, 1.0f);
+    if (clipPosition.w == 0.0f)
+    {
+        return true;
+    }
+
+    const glm::vec3 ndcPosition = glm::vec3(clipPosition) / clipPosition.w;
+    const float marginX = Window::GetLogicalWidth() > 0 ? margin / (static_cast<float>(Window::GetLogicalWidth()) * 0.5f) : 0.0f;
+    const float marginY = Window::GetLogicalHeight() > 0 ? margin / (static_cast<float>(Window::GetLogicalHeight()) * 0.5f) : 0.0f;
+
+    // Checks whether the position lies outside the camera view bounds
+    return ndcPosition.x < -1.0f - marginX ||
+           ndcPosition.x > 1.0f + marginX ||
+           ndcPosition.y < -1.0f - marginY ||
+           ndcPosition.y > 1.0f + marginY;
 }
 
 void Application::Run()
@@ -722,8 +749,44 @@ void Application::RenderQueuedText(Shader &shader)
             shader.SetMat4("u_ViewProjection", command.FollowCamera ? m_Camera->GetViewProjectionMatrix() : screenProjection);
         }
 
+        // Centers or aligns the text block before drawing if requested
+        glm::vec2 drawPosition = command.Position;
+        const glm::vec2 measuredSize = m_Renderer->MeasureText(*font, command.Text, command.Scale * m_DefaultFontScale);
+
+        switch (command.Anchor)
+        {
+        case TextAnchor::TopCenter:
+        case TextAnchor::MiddleCenter:
+        case TextAnchor::BottomCenter:
+            drawPosition.x -= measuredSize.x * 0.5f;
+            break;
+        case TextAnchor::TopRight:
+        case TextAnchor::MiddleRight:
+        case TextAnchor::BottomRight:
+            drawPosition.x -= measuredSize.x;
+            break;
+        default:
+            break;
+        }
+
+        switch (command.Anchor)
+        {
+        case TextAnchor::MiddleLeft:
+        case TextAnchor::MiddleCenter:
+        case TextAnchor::MiddleRight:
+            drawPosition.y -= measuredSize.y * 0.5f;
+            break;
+        case TextAnchor::BottomLeft:
+        case TextAnchor::BottomCenter:
+        case TextAnchor::BottomRight:
+            drawPosition.y -= measuredSize.y;
+            break;
+        default:
+            break;
+        }
+
         // Draws each queued string with the shared font atlas
-        m_Renderer->DrawText(shader, *font, command.Position, command.Text, command.Tint, command.Scale * m_DefaultFontScale);
+        m_Renderer->DrawText(shader, *font, drawPosition, command.Text, command.Tint, command.Scale * m_DefaultFontScale);
     }
 
     m_TextQueue.clear();

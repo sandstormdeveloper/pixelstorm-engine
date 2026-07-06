@@ -8,6 +8,7 @@
 #include <vector>
 
 struct GLFWwindow;
+class Camera2D;
 
 enum class Key
 {
@@ -68,6 +69,7 @@ public:
     static bool IsMouseButtonJustPressed(MouseButton button);  // Returns if mouse button was pressed this frame
     static bool IsMouseButtonJustReleased(MouseButton button); // Returns if mouse button was released this frame
     static Vec2 GetMousePosition();                            // Returns mouse position in logical screen space
+    static Vec2 GetMouseWorldPosition(const Camera2D &camera); // Returns mouse position transformed into world space
     static Vec2 GetMouseDelta();                               // Returns mouse movement since last frame
 
     static void ClearAction(const std::string &actionName);                  // Removes all bindings from action

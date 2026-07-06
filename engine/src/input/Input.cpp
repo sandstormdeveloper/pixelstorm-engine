@@ -2,10 +2,12 @@
 
 #include "pixelstorm/core/Log.h"
 #include "pixelstorm/core/Window.h"
+#include "pixelstorm/renderer/Camera2D.h"
 
 #include <algorithm>
 #include <cmath>
 #include <GLFW/glfw3.h>
+#include <glm/ext/matrix_transform.hpp>
 #include <glm/geometric.hpp>
 
 GLFWwindow *Input::s_Window = nullptr;
@@ -192,6 +194,30 @@ Vec2 Input::GetMousePosition()
     const float mappedY = (s_CurrentMousePosition.y / static_cast<float>(windowHeight)) * logicalHeight;
 
     return Vec2(std::round(mappedX), std::round(mappedY));
+}
+
+Vec2 Input::GetMouseWorldPosition(const Camera2D &camera)
+{
+    // Converts the logical mouse position into world space using the active camera
+    const Vec2 mousePosition = GetMousePosition();
+    const float logicalWidth = static_cast<float>(Window::GetLogicalWidth());
+    const float logicalHeight = static_cast<float>(Window::GetLogicalHeight());
+
+    if (logicalWidth <= 0.0f || logicalHeight <= 0.0f)
+    {
+        return mousePosition;
+    }
+
+    const float ndcX = (mousePosition.x / logicalWidth) * 2.0f - 1.0f;
+    const float ndcY = 1.0f - (mousePosition.y / logicalHeight) * 2.0f;
+    const glm::vec4 worldPosition = glm::inverse(camera.GetViewProjectionMatrix()) * glm::vec4(ndcX, ndcY, 0.0f, 1.0f);
+
+    if (worldPosition.w == 0.0f)
+    {
+        return mousePosition;
+    }
+
+    return Vec2(worldPosition.x / worldPosition.w, worldPosition.y / worldPosition.w);
 }
 
 Vec2 Input::GetMouseDelta()

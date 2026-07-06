@@ -1,18 +1,21 @@
 #include "pixelstorm/PixelStorm.h"
+#include "../scenes/GameOverScene.h"
+#include "../scenes/MenuScene.h"
 #include "../scenes/GameScene.h"
-#include "../scenes/SecondScene.h"
 
 int main()
 {
-    Application app(640, 360, "Demo");
+    Application app(640, 360, "PixelStorm");
 
-    app.LoadTexture("player_run", "assets/player_run.png");
-    app.LoadTexture("wall", "assets/wall.png");
+    app.LoadTexture("player", "assets/player.png");
+    app.LoadTexture("gun", "assets/gun.png");
+    app.LoadTexture("bullet", "assets/bullet.png");
     UI::Bind(app);
 
-    app.GetScenes().AddScene("game", std::make_unique<GameScene>());
-    app.GetScenes().AddScene("second", std::make_unique<SecondScene>());
-    app.GetScenes().ChangeScene("game");
+    app.GetScenes().AddScene<MenuScene>("menu");
+    app.GetScenes().AddScene<GameScene>("game");
+    app.GetScenes().AddScene<GameOverScene>("gameover");
+    app.GetScenes().ChangeScene("menu");
 
     app.Run();
 
