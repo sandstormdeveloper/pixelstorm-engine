@@ -1,22 +1,31 @@
-# The Demo
+# Demo
 
-This is a **demo** built to demonstrate the functionalities of the game engine.
+This folder contains the playable sample used to exercise the engine. It is a small top-down shooter with:
 
-## How to build with CMake
+- a menu scene,
+- a gameplay scene with movement, shooting, enemies, particles, and camera follow,
+- a game-over scene with retry flow.
 
-The following **commands** demonstrate how to **build** your game with **CMake**, and generate a working `.exe` file:
+## Controls
 
-**Only Debug** (with terminal)
+- `WASD` or arrow keys: move
+- Mouse left button: shoot
+- `Space`: start / retry
+- `F3`: toggle collider debug drawing
+
+## Build
+
+From the repository root:
+
 ```powershell
-cmake -S . -B build; cmake --build build -j 4
+cmake -S . -B build
+cmake --build build --config Debug
 ```
 
-**Only Release** (without terminal)
+For a release build:
+
 ```powershell
-cmake -S . -B build; cmake --build build -j 4 --config Release
+cmake --build build --config Release
 ```
 
-**Debug and Release**
-```powershell
-cmake -S . -B build; cmake --build build -j 4; cmake --build build -j 4 --config Release
-```
+The demo executable is copied to `build/bin/<config>/pixelstorm_demo.exe`.
