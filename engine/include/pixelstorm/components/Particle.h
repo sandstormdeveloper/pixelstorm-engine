@@ -32,6 +32,7 @@ struct ParticleEmitter
     bool Active;             // Whether the emitter is allowed to create particles
     bool Loop;               // Whether the emitter keeps spawning particles over time
     bool AutoEmit;           // Whether the emitter should spawn particles automatically
+    bool OneShot;            // Whether the emitter should destroy itself after spawning
     int BurstCount;          // Number of particles created by one burst
     float EmitRate;          // Particles spawned per second while auto emitting
     float EmitAccumulator;   // Accumulated time for auto emission

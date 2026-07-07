@@ -85,7 +85,11 @@ void ParticleSystem::Update(Registry &registry, float deltaTime)
 
         if (emitter.PendingBursts > 0)
         {
-            SpawnBurst(registry, emitterEntity, emitter.PendingBursts);
+            for (int burstIndex = 0; burstIndex < emitter.PendingBursts; ++burstIndex)
+            {
+                SpawnBurst(registry, emitterEntity, emitter.BurstCount);
+            }
+
             emitter.PendingBursts = 0;
         }
 
@@ -98,6 +102,11 @@ void ParticleSystem::Update(Registry &registry, float deltaTime)
                 emitter.EmitAccumulator -= interval;
                 SpawnBurst(registry, emitterEntity, emitter.BurstCount);
             }
+        }
+
+        if (emitter.OneShot)
+        {
+            emitterEntity.Destroy(false);
         }
     }
 

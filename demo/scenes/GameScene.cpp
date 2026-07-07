@@ -26,11 +26,11 @@ float GameScene::GetEnemySpawnDelay() const
 {
     // Reduces the spawn delay as the player survives longer
     const float elapsed = static_cast<float>(Time::GetElapsedTime() - playerSpawnTime);
-    float delay = 2.5f - (elapsed * 0.03f);
+    float delay = 2.0f - (elapsed * 0.04f);
 
-    if (delay < 0.45f)
+    if (delay < 0.4f)
     {
-        delay = 0.45f;
+        delay = 0.4f;
     }
 
     return delay;
@@ -95,6 +95,34 @@ void GameScene::CreateEnemy()
     Add(enemies, Enemy{ enemy, false });
 }
 
+void GameScene::SpawnDeathParticles(const Vec2 &position, const glm::vec4 &color)
+{
+    // Spawns a short-lived burst and marks the emitter as disposable
+    Entity emitter = GetWorld().CreateParticleEmitter(
+        "DeathParticles",
+        position,
+        "bullet",
+        40,
+        0.28f,
+        175.0f,
+        70.0f,
+        360.0f,
+        color,
+        glm::vec4(color.r, color.g, color.b, 0.0f),
+        Vec2(5.0f, 5.0f),
+        Vec2(2.0f, 2.0f),
+        0.0f,
+        90,
+        false,
+        false,
+        0.0f
+    );
+
+    emitter.Particles().SetOneShot(true);
+    // Requests the particle system to spawn the configured burst on the next update
+    emitter.Particles().EmitBurst(1);
+}
+
 Vec2 GameScene::GetPlayerPosition()
 {
     // Returns the current player position for shared scene logic
@@ -134,9 +162,17 @@ void GameScene::UpdatePlayerMovement(const Vec2 &movement)
 
 void GameScene::UpdatePlayerCollision()
 {
+    // Kills the player when a hostile collider reaches them
     player.Trigger().SetOnEnter([&](Entity other) {
         if (other.GetName() == "Enemy")
         {
+            if (debug) {
+                return;
+            }
+
+            // Adds a small camera hit and a white burst before removing the actor
+            GetApplication().ShakeCamera(0.5f, 16.0f, 60.0f);
+            SpawnDeathParticles(player.Transform().GetPosition(), Colors::White());
             player.Destroy();
             gun.Destroy();
         }
@@ -161,8 +197,8 @@ void GameScene::UpdateGun(const Vec2 &gunPosition, float aimAngleDegrees)
 
 void GameScene::HandleShooting(const Vec2 &gunPosition, const Vec2 &bulletDirection, float aimAngleDegrees)
 {
-    // Spawns a bullet when the left mouse button is pressed
-    if (!Input::IsMouseButtonJustPressed(MouseButton::Left))
+    // Spawns a bullet while the left mouse button is held, throttled by a cooldown
+    if (!Input::IsMouseButtonDown(MouseButton::Left) || shootCooldownTimer > 0.0f)
     {
         return;
     }
@@ -178,15 +214,20 @@ void GameScene::HandleShooting(const Vec2 &gunPosition, const Vec2 &bulletDirect
     bullet.Collider().SetTrigger(true);
     bullet.Sprite().SetRenderOrder(20);
     bullet.Transform().SetRotation(aimAngleDegrees);
-    bullet.Trigger().SetOnEnter([bullet](Entity other) {
+    // Bullets destroy enemies on contact and emit a red burst at the hit position
+    bullet.Trigger().SetOnEnter([bullet, this](Entity other) {
         if (other.GetName() == "Enemy")
         {
+            const Vec2 enemyPosition = other.Transform().GetPosition();
+            GetApplication().ShakeCamera(0.25f, 4.0f, 60.0f);
+            SpawnDeathParticles(enemyPosition, Colors::Red());
             other.Destroy();
             bullet.Destroy();
         }
     });
 
     Add(bullets, Bullet{ bullet, bulletDirection * 360.0f, false });
+    shootCooldownTimer = shootCooldownSeconds;
 }
 
 void GameScene::UpdateBullets(float deltaTime)
@@ -227,6 +268,15 @@ void GameScene::UpdateEnemies(float deltaTime)
 
         const Vec2 enemyPosition = enemy.EntityHandle.Transform().GetPosition();
         const Vec2 direction = Normalize(GetPlayerPosition() - enemyPosition);
+
+        // Freezes the enemy when it is close enough to the player or the player is gone
+        if (((Abs(GetPlayerPosition().x - enemyPosition.x)) < 10.0f && (Abs(GetPlayerPosition().y - enemyPosition.y)) < 5.0f) || !player.IsValid())
+        {
+            enemy.EntityHandle.Rigidbody().SetVelocity(Vec2(0.0f, 0.0f));
+            enemy.EntityHandle.Animation().Play("idle");
+            return;
+        }
+
         const float enemySpeed = 60.0f;
 
         enemy.EntityHandle.Rigidbody().SetVelocity(direction * enemySpeed);
@@ -242,12 +292,12 @@ void GameScene::UpdateEnemies(float deltaTime)
 void GameScene::UpdateEnemySpawner(float deltaTime)
 {
     // Spawns more enemies as time passes
-    m_EnemySpawnTimer += deltaTime;
+    enemySpawnTimer += deltaTime;
 
     float spawnDelay = GetEnemySpawnDelay();
-    while (m_EnemySpawnTimer >= spawnDelay)
+    while (enemySpawnTimer >= spawnDelay)
     {
-        m_EnemySpawnTimer -= spawnDelay;
+        enemySpawnTimer -= spawnDelay;
         CreateEnemy();
         spawnDelay = GetEnemySpawnDelay();
     }
@@ -280,13 +330,38 @@ void GameScene::UpdateHud()
 {
     // Displays how long the player has been alive
     UI::Print("Alive: " + ToString(Time::GetElapsedTime() - playerSpawnTime) + "s", Vec2(10.0f, -10.0f), Colors::White(), 1.5f, false);
+
+    if (!debug)
+    {
+        return;
+    }
+
+    UI::Print("FPS: " + ToString(fps), Vec2(10.0f, 10.0f), Colors::Green(), 1.5f, false);
+    UI::Print("Num of enemies: " + ToString(ToInt(enemies.size())), Vec2(10.0f, 30.0f), Colors::Green(), 1.5f, false);
+}
+
+void GameScene::FPS(float deltaTime) 
+{
+    // Accumulates frame time and refreshes the cached FPS once per second
+    fpsTimer += deltaTime;
+    frameCount++;
+
+    if (fpsTimer >= 1.0f)
+    {
+        fps = frameCount / fpsTimer;
+
+        frameCount = 0;
+        fpsTimer = 0.0f;
+    }
 }
 
 void GameScene::OnEnter()
 {
+    // Resets the round state and binds the player camera target
     Log::Debug("Entering GameScene");
     playerSpawnTime = Time::GetElapsedTime();
-    m_EnemySpawnTimer = 0.0f;
+    enemySpawnTimer = 0.0f;
+    shootCooldownTimer = 0.0f;
 
     CreatePlayer();
     GetApplication().FollowCamera(player);
@@ -295,6 +370,16 @@ void GameScene::OnEnter()
 
 void GameScene::OnUpdate(float deltaTime)
 {
+    // Keeps the frame timer up to date before running gameplay logic
+    FPS(deltaTime);
+    if (shootCooldownTimer > 0.0f)
+    {
+        shootCooldownTimer -= deltaTime;
+        if (shootCooldownTimer < 0.0f)
+        {
+            shootCooldownTimer = 0.0f;
+        }
+    }
     if (!player.IsValid())
     {
         ChangeScene("gameover", 1.0f);
@@ -309,6 +394,19 @@ void GameScene::OnUpdate(float deltaTime)
     const float aimAngleDegrees = Degrees(Atan2(aimDirection.y, aimDirection.x));
     const Vec2 bulletDirection = GetBulletDirection(aimDirection);
 
+    if (Input::IsKeyJustPressed(Key::F3))
+    {
+        debug = !debug;
+    }
+
+    if (debug)
+    {
+        if (Input::IsKeyJustPressed(Key::Space))
+        {
+            CreateEnemy();
+        }
+    }
+
     HandleShooting(gunPosition, bulletDirection, aimAngleDegrees);
     UpdateGun(gunPosition, aimAngleDegrees);
     UpdateEnemySpawner(deltaTime);
@@ -321,6 +419,7 @@ void GameScene::OnUpdate(float deltaTime)
 
 void GameScene::OnExit()
 {
+    // Clears the local gameplay lists; the registry cleanup runs separately
     bullets.clear();
     enemies.clear();
     Log::Debug("Leaving GameScene");

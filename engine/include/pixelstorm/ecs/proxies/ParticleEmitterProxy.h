@@ -63,6 +63,18 @@ public:
         m_Emitter.AutoEmit = autoEmit;
     }
 
+    bool IsOneShot() const
+    {
+        // Returns whether the emitter should self-destruct after spawning
+        return m_Emitter.OneShot;
+    }
+
+    void SetOneShot(bool oneShot)
+    {
+        // Updates whether the emitter should self-destruct after spawning
+        m_Emitter.OneShot = oneShot;
+    }
+
     int GetBurstCount() const
     {
         // Returns how many particles are spawned by one burst

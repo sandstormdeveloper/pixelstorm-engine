@@ -16,13 +16,18 @@
 
 namespace
 {
-    void DispatchTriggerCallback(Entity recipient, const Entity &other, TriggerEventType type)
+void DispatchTriggerCallback(Entity recipient, const Entity &other, TriggerEventType type)
+{
+    if (!recipient.IsValid() || !recipient.HasComponent<Collider>())
     {
-        // Routes the trigger event to the callback stored on the trigger collider
-        Collider &collider = recipient.GetComponent<Collider>();
-        if (!collider.IsTrigger)
-        {
-            return;
+        return;
+    }
+
+    // Routes the trigger event to the callback stored on the trigger collider
+    Collider &collider = recipient.GetComponent<Collider>();
+    if (!collider.IsTrigger)
+    {
+        return;
         }
 
         switch (type)
@@ -218,12 +223,12 @@ void PhysicsSystem::Update(Registry &registry, float deltaTime)
         const std::unordered_map<EntityId, Entity>::iterator firstIt = triggerLookup.find(firstId);
         const std::unordered_map<EntityId, Entity>::iterator secondIt = triggerLookup.find(secondId);
 
-        if (firstIt != triggerLookup.end())
+        if (firstIt != triggerLookup.end() && firstIt->second.IsValid())
         {
             DispatchTriggerCallback(firstIt->second, secondIt != triggerLookup.end() ? secondIt->second : firstIt->second, event.Type);
         }
 
-        if (secondIt != triggerLookup.end())
+        if (secondIt != triggerLookup.end() && secondIt->second.IsValid())
         {
             DispatchTriggerCallback(secondIt->second, firstIt != triggerLookup.end() ? firstIt->second : secondIt->second, event.Type);
         }

@@ -51,6 +51,7 @@ public:
     bool IsCameraFollowing() const;                                                                                                                                                            // Returns whether the camera is following an entity
     bool IsPositionOutsideCamera(const Vec2 &position, float margin = 0.0f) const;                                                                                                             // Returns whether a world position is outside the visible camera area
     void ResetCameraTracking();                                                                                                                                                                // Clears camera follow and restores the default scene camera state
+    void ShakeCamera(float durationSeconds = 0.15f, float magnitude = 4.0f, float frequency = 42.0f);                                                                                          // Adds a simple camera shake effect
 
     void OnUpdate(const std::function<void(float)> &callback); // Passes update function to application
 
@@ -70,6 +71,7 @@ private:
 
     Shader *GetActiveShader() const;       // Returns active shader
     void RenderQueuedText(Shader &shader); // Draws queued text commands
+    void ApplyCameraTransform();           // Applies the base camera transform and current shake offset
 
     std::unique_ptr<Window> m_Window;                   // Main window
     std::unique_ptr<Renderer> m_Renderer;               // Basic 2D renderer
@@ -89,6 +91,13 @@ private:
     bool m_CameraFollowRotation;                        // Whether the camera copies entity rotation
     float m_CameraFollowSpeed;                          // How quickly the camera catches up to its target
     bool m_SnapCameraOnNextFollow;                      // Whether the next camera follow should snap immediately
+    Vec2 m_CameraBasePosition;                          // Camera position before shake is applied
+    float m_CameraBaseRotation;                         // Camera rotation before shake is applied
+    float m_CameraShakeTimeRemaining;                   // Remaining shake time
+    float m_CameraShakeDuration;                        // Total shake duration for falloff
+    float m_CameraShakeMagnitude;                       // Current shake magnitude
+    float m_CameraShakeFrequency;                       // Shake oscillation speed
+    float m_CameraShakeSeed;                            // Phase offset so repeated shakes feel different
     bool m_PostProcessEnabled;                          // Whether the CRT-style postprocess pass is active
     unsigned int m_PostProcessFBO;                      // Framebuffer used to render the scene
     unsigned int m_PostProcessColorTexture;             // Color texture attached to the framebuffer

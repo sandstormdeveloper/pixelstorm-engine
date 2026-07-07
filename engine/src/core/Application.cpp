@@ -93,6 +93,13 @@ Application::Application(int width, int height, const char *title)
       m_CameraFollowRotation(false),
       m_CameraFollowSpeed(8.0f),
       m_SnapCameraOnNextFollow(false),
+      m_CameraBasePosition(0.0f, 0.0f),
+      m_CameraBaseRotation(0.0f),
+      m_CameraShakeTimeRemaining(0.0f),
+      m_CameraShakeDuration(0.0f),
+      m_CameraShakeMagnitude(0.0f),
+      m_CameraShakeFrequency(0.0f),
+      m_CameraShakeSeed(0.0f),
       m_PostProcessEnabled(true),
       m_PostProcessFBO(0),
       m_PostProcessColorTexture(0),
@@ -246,18 +253,20 @@ const Camera2D &Application::GetCamera() const
 void Application::SetCameraPosition(const Vec2 &position)
 {
     // Moves the main camera
+    m_CameraBasePosition = position;
     if (m_Camera)
     {
-        m_Camera->SetPosition(position);
+        ApplyCameraTransform();
     }
 }
 
 void Application::SetCameraRotation(float rotationDegrees)
 {
     // Rotates the main camera
+    m_CameraBaseRotation = rotationDegrees;
     if (m_Camera)
     {
-        m_Camera->SetRotation(rotationDegrees);
+        ApplyCameraTransform();
     }
 }
 
@@ -289,15 +298,14 @@ void Application::FollowCamera(Entity entity, const Vec2 &offset, bool followRot
     {
         const Transform &transform = m_CameraFollowTarget.GetComponent<Transform>();
         const Vec2 targetPosition = transform.Position + m_CameraFollowOffset;
-        m_Camera->SetPosition(targetPosition);
-
-        if (m_CameraFollowRotation)
-        {
-            m_Camera->SetRotation(transform.Rotation);
-        }
+        m_CameraBasePosition = targetPosition;
+        m_CameraBaseRotation = m_CameraFollowRotation ? transform.Rotation : 0.0f;
+        ApplyCameraTransform();
 
         m_SnapCameraOnNextFollow = false;
     }
+
+    ApplyCameraTransform();
 }
 
 void Application::StopCameraFollow()
@@ -313,11 +321,32 @@ void Application::ResetCameraTracking()
 {
     // Restores the default camera state and asks the next follow to snap immediately
     StopCameraFollow();
-    SetCameraPosition(Vec2(
+    m_CameraBasePosition = Vec2(
         static_cast<float>(Window::GetLogicalWidth()) * 0.5f,
-        static_cast<float>(Window::GetLogicalHeight()) * 0.5f));
-    SetCameraRotation(0.0f);
+        static_cast<float>(Window::GetLogicalHeight()) * 0.5f);
+    m_CameraBaseRotation = 0.0f;
+    ApplyCameraTransform();
     m_SnapCameraOnNextFollow = true;
+}
+
+void Application::ShakeCamera(float durationSeconds, float magnitude, float frequency)
+{
+    // Starts or refreshes a short camera shake burst
+    if (durationSeconds <= 0.0f || magnitude <= 0.0f || frequency <= 0.0f)
+    {
+        return;
+    }
+
+    m_CameraShakeTimeRemaining = std::max(m_CameraShakeTimeRemaining, durationSeconds);
+    m_CameraShakeDuration = std::max(m_CameraShakeDuration, durationSeconds);
+    m_CameraShakeMagnitude = std::max(m_CameraShakeMagnitude, magnitude);
+    m_CameraShakeFrequency = frequency;
+    m_CameraShakeSeed = RandomFloat(0.0f, 1000.0f);
+
+    if (m_Camera)
+    {
+        ApplyCameraTransform();
+    }
 }
 
 bool Application::IsCameraFollowing() const
@@ -350,6 +379,34 @@ bool Application::IsPositionOutsideCamera(const Vec2 &position, float margin) co
            ndcPosition.x > 1.0f + marginX ||
            ndcPosition.y < -1.0f - marginY ||
            ndcPosition.y > 1.0f + marginY;
+}
+
+void Application::ApplyCameraTransform()
+{
+    if (!m_Camera)
+    {
+        return;
+    }
+
+    Vec2 shakeOffset(0.0f, 0.0f);
+    float shakeRotation = 0.0f;
+
+    if (m_CameraShakeTimeRemaining > 0.0f && m_CameraShakeDuration > 0.0f)
+    {
+        const float lifetimeT = std::clamp(m_CameraShakeTimeRemaining / m_CameraShakeDuration, 0.0f, 1.0f);
+        const float falloff = lifetimeT * lifetimeT * lifetimeT;
+        const float phase = static_cast<float>(Time::GetElapsedTime()) * m_CameraShakeFrequency + m_CameraShakeSeed;
+        const float intensity = m_CameraShakeMagnitude * falloff;
+
+        const float shakeX = (Sin(phase * 1.73f + 0.31f) + Sin(phase * 2.91f + 1.77f) * 0.45f) * 0.5f;
+        const float shakeY = (Cos(phase * 1.41f + 2.29f) + Sin(phase * 2.53f + 0.63f) * 0.45f) * 0.5f;
+
+        shakeOffset = Vec2(shakeX, shakeY) * intensity;
+        shakeRotation = Sin(phase * 1.11f + 0.47f) * intensity * 0.03f;
+    }
+
+    m_Camera->SetPosition(m_CameraBasePosition + shakeOffset);
+    m_Camera->SetRotation(m_CameraBaseRotation + shakeRotation);
 }
 
 void Application::Run()
@@ -501,7 +558,8 @@ void Application::Init(int width, int height, const char *title)
         static_cast<float>(width) * 0.5f,
         static_cast<float>(height) * 0.5f,
         -static_cast<float>(height) * 0.5f);
-    m_Camera->SetPosition(Vec2(static_cast<float>(width) * 0.5f, static_cast<float>(height) * 0.5f));
+    SetCameraPosition(Vec2(static_cast<float>(width) * 0.5f, static_cast<float>(height) * 0.5f));
+    SetCameraRotation(0.0f);
     Log::Info("Main 2D camera created.");
 
     // Creates texture
@@ -603,50 +661,55 @@ const SceneManager& Application::GetScenes() const
 void Application::UpdateCameraFollow()
 {
     // Keeps the camera attached to the tracked entity while it remains valid
-    if (!m_Camera || !m_CameraFollowTarget.IsValid())
+    if (!m_Camera)
     {
         return;
     }
 
-    if (!m_CameraFollowTarget.HasComponent<Transform>())
+    if (m_CameraFollowTarget.IsValid() && !m_CameraFollowTarget.HasComponent<Transform>())
     {
         StopCameraFollow();
-        return;
     }
-
-    const Transform &transform = m_CameraFollowTarget.GetComponent<Transform>();
-    const Vec2 targetPosition = transform.Position + m_CameraFollowOffset;
-    const Vec2 currentPosition = m_Camera->GetPosition();
-
-    if (m_CameraFollowSpeed <= 0.0f)
+    else if (m_CameraFollowTarget.IsValid())
     {
-        // Zero or negative speed keeps the old instant-follow behavior
-        m_Camera->SetPosition(targetPosition);
-    }
-    else
-    {
-        // Smoothly approaches the target position to create a small follow delay
-        const float deltaTime = static_cast<float>(Time::GetDeltaTime());
-        const float followFactor = 1.0f - std::exp(-m_CameraFollowSpeed * deltaTime);
-        m_Camera->SetPosition(currentPosition + (targetPosition - currentPosition) * followFactor);
-    }
+        const Transform &transform = m_CameraFollowTarget.GetComponent<Transform>();
+        const Vec2 targetPosition = transform.Position + m_CameraFollowOffset;
 
-    if (m_CameraFollowRotation)
-    {
-        const float currentRotation = m_Camera->GetRotation();
         if (m_CameraFollowSpeed <= 0.0f)
         {
             // Zero or negative speed keeps the old instant-follow behavior
-            m_Camera->SetRotation(transform.Rotation);
+            m_CameraBasePosition = targetPosition;
+            if (m_CameraFollowRotation)
+            {
+                m_CameraBaseRotation = transform.Rotation;
+            }
         }
         else
         {
-            // Smoothly approaches the target rotation to match the positional delay
+            // Smoothly approaches the target position to create a small follow delay
             const float deltaTime = static_cast<float>(Time::GetDeltaTime());
             const float followFactor = 1.0f - std::exp(-m_CameraFollowSpeed * deltaTime);
-            m_Camera->SetRotation(currentRotation + (transform.Rotation - currentRotation) * followFactor);
+            m_CameraBasePosition = m_CameraBasePosition + (targetPosition - m_CameraBasePosition) * followFactor;
+
+            if (m_CameraFollowRotation)
+            {
+                m_CameraBaseRotation = m_CameraBaseRotation + (transform.Rotation - m_CameraBaseRotation) * followFactor;
+            }
         }
     }
+
+    if (m_CameraShakeTimeRemaining > 0.0f)
+    {
+        m_CameraShakeTimeRemaining = std::max(0.0f, m_CameraShakeTimeRemaining - static_cast<float>(Time::GetDeltaTime()));
+        if (m_CameraShakeTimeRemaining == 0.0f)
+        {
+            m_CameraShakeDuration = 0.0f;
+            m_CameraShakeMagnitude = 0.0f;
+            m_CameraShakeFrequency = 0.0f;
+        }
+    }
+
+    ApplyCameraTransform();
 }
 
 void Application::EnsurePostProcessTarget(int width, int height)

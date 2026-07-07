@@ -137,6 +137,42 @@ inline std::string ToString(double value)
     return buffer;
 }
 
+inline int ToInt(double value)
+{
+    // Formats double to an int
+    return static_cast<int>(value);
+}
+
+inline int ToInt(float value)
+{
+    // Formats float to an int
+    return static_cast<int>(value);
+}
+
+inline int ToInt(size_t value)
+{
+    // Formats size to an int
+    return static_cast<int>(value);
+}
+
+inline float Abs(float value)
+{
+    // Returns absolute value
+    return std::abs(value);
+}
+
+inline double Abs(double value)
+{
+    // Returns absolute value
+    return std::abs(value);
+}
+
+inline int Abs(int value)
+{
+    // Returns absolute value
+    return std::abs(value);
+}
+
 template <typename T, typename Predicate>
 void EraseIf(Array<T> &values, Predicate predicate)
 {

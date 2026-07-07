@@ -49,6 +49,10 @@ void Entity::Destroy(bool logDestruction) const
     // Destroys this entity through the registry if possible
     if (m_Registry)
     {
+        if (!IsValid()) {
+            return;
+        }
+
         m_Registry->DestroyEntity(*this, logDestruction);
     }
 }

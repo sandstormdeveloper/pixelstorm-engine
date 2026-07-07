@@ -35,6 +35,7 @@ ParticleEmitter::ParticleEmitter()
     : Active(true),
       Loop(false),
       AutoEmit(false),
+      OneShot(false),
       BurstCount(8),
       EmitRate(0.0f),
       EmitAccumulator(0.0f),
